@@ -51,20 +51,7 @@ const newHandler = async ({ studyService, log = consoleLogger } = {}) => {
     ref: 'main',
     subtree: 'datasets',
     filterTags: [
-      'genetic',
-      'genomic',
-      'life sciences',
-      'whole genome sequencing',
-      'STRIDES',
-      'cancer',
-      'population genetics',
-      'COVID-19',
-      'health',
-      'neuroimaging',
-      'neuroscience',
-      'cell biology',
-      'cell imaging',
-      'bioinformatics',
+      'earth observation',
     ],
   };
 

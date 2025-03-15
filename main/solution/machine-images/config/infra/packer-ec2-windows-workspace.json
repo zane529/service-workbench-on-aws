@@ -23,10 +23,12 @@
           "name": "Windows_Server-*-English-Full-Base-*",
           "root-device-type": "ebs"
         },
-        "owners": ["amazon"],
+        "owners": [
+          "amazon"
+        ],
         "most_recent": true
       },
-      "instance_type": "t2.medium",
+      "instance_type": "c6i.large",
       "communicator": "none",
       "ami_name": "{{user `ec2WindowsAmiPrefix`}}-{{timestamp}}"
     }
