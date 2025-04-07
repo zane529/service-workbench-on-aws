@@ -12,7 +12,7 @@ Parameters:
   InstanceType:
     Type: String
     Description: EC2 instance type to launch
-    Default: ml.g5.4xlarge
+    Default: ml.g4dn.4xlarge
   VPC:
     Description: VPC for EMR nodes.
     Type: AWS::EC2::VPC::Id
@@ -314,8 +314,12 @@ Resources:
               # Clone the GitHub repository
               cd /home/ec2-user/SageMaker
               git clone https://github.com/zane529/odp
-              cd odp
-              sh fast_deploy.sh
+
+              # Make the script executable and run it in the conda environment
+              cd /home/ec2-user/SageMaker/odp
+              chmod +x fast_deploy.sh
+              source /home/ec2-user/anaconda3/bin/activate conda_python3
+              ./fast_deploy.sh
 
               # Stop Idle Script
               if [ "${AutoStopIdleTimeInMinutes}" != "0" ]; then
