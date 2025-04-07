@@ -9,7 +9,7 @@ Parameters:
   InstanceType:
     Type: String
     Description: EC2 instance type to launch
-    Default: ml.t3.xlarge
+    Default: ml.g5.4xlarge
   VPC:
     Description: VPC for EMR nodes.
     Type: AWS::EC2::VPC::Id
@@ -32,42 +32,42 @@ Parameters:
     Description: The IAM policy for launched workstation to access egress store
 
 Conditions:
-  IamPolicyEmpty: !Equals [!Ref IamPolicyDocument, '{}']
-  EgressStoreIamPolicyEmpty: !Equals [!Ref EgressStoreIamPolicyDocument, '{}']
+  IamPolicyEmpty: !Equals [!Ref IamPolicyDocument, "{}"]
+  EgressStoreIamPolicyEmpty: !Equals [!Ref EgressStoreIamPolicyDocument, "{}"]
 
 Resources:
   EncryptionKey:
     Type: AWS::KMS::Key
     Properties:
-      Description: 'This is the key used to secure resources in this account'
+      Description: "This is the key used to secure resources in this account"
       EnableKeyRotation: True
       KeyPolicy:
-        Version: '2012-10-17'
+        Version: "2012-10-17"
         Statement:
           - Sid: Allow root access
-            Effect: 'Allow'
+            Effect: "Allow"
             Principal:
               AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
             Action:
-              - 'kms:*'
-            Resource: '*'
+              - "kms:*"
+            Resource: "*"
           - Sid: Allow use of the key by this account
-            Effect: 'Allow'
+            Effect: "Allow"
             Principal:
-              AWS: '*'
+              AWS: "*"
             Action:
-              - 'kms:DescribeKey'
-              - 'kms:Encrypt'
-              - 'kms:Decrypt'
-              - 'kms:ReEncrypt*'
-              - 'kms:GenerateDataKey'
-              - 'kms:GenerateDataKeyWithoutPlaintext'
-              - 'kms:CreateGrant'
-              - 'kms:RevokeGrant'
-            Resource: '*'
+              - "kms:DescribeKey"
+              - "kms:Encrypt"
+              - "kms:Decrypt"
+              - "kms:ReEncrypt*"
+              - "kms:GenerateDataKey"
+              - "kms:GenerateDataKeyWithoutPlaintext"
+              - "kms:CreateGrant"
+              - "kms:RevokeGrant"
+            Resource: "*"
             Condition:
               StringEquals:
-                kms:CallerAccount: !Ref 'AWS::AccountId'
+                kms:CallerAccount: !Ref "AWS::AccountId"
 
   SecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -77,50 +77,60 @@ Resources:
         Ref: VPC
 
   IAMRole:
-    Type: 'AWS::IAM::Role'
+    Type: "AWS::IAM::Role"
     Properties:
-      RoleName: !Join ['-', [Ref: Namespace, 'sagemaker-notebook-role']]
-      Path: '/'
+      RoleName: !Join ["-", [Ref: Namespace, "sagemaker-notebook-role"]]
+      Path: "/"
       AssumeRolePolicyDocument:
-        Version: '2012-10-17'
+        Version: "2012-10-17"
         Statement:
-          - Effect: 'Allow'
+          - Effect: "Allow"
             Principal:
               Service:
-                - 'sagemaker.amazonaws.com'
+                - "sagemaker.amazonaws.com"
             Action:
-              - 'sts:AssumeRole'
+              - "sts:AssumeRole"
       Policies:
         - !If
           - IamPolicyEmpty
-          - !Ref 'AWS::NoValue'
-          - PolicyName: !Join ['-', [Ref: Namespace, 's3-studydata-policy']]
+          - !Ref "AWS::NoValue"
+          - PolicyName: !Join ["-", [Ref: Namespace, "s3-studydata-policy"]]
             PolicyDocument: !Ref IamPolicyDocument
         - !If
           - EgressStoreIamPolicyEmpty
-          - !Ref 'AWS::NoValue'
-          - PolicyName: !Join ['-', [Ref: Namespace, 's3-egressstore-policy']]
+          - !Ref "AWS::NoValue"
+          - PolicyName: !Join ["-", [Ref: Namespace, "s3-egressstore-policy"]]
             PolicyDocument: !Ref EgressStoreIamPolicyDocument
-        - PolicyName: !Join ['-', [Ref: Namespace, 's3-bootstrap-script-policy']]
+        - PolicyName:
+            !Join ["-", [Ref: Namespace, "s3-bootstrap-script-policy"]]
           PolicyDocument:
-            Version: '2012-10-17'
+            Version: "2012-10-17"
             Statement:
-              - Effect: 'Allow'
-                Action: 's3:GetObject'
+              - Effect: "Allow"
+                Action: "s3:GetObject"
                 Resource: !Sub
-                  - 'arn:aws:s3:::${S3Location}/*'
+                  - "arn:aws:s3:::${S3Location}/*"
                   # Remove "s3://" prefix from EnvironmentInstanceFiles
-                  - S3Location: !Select [1, !Split ['s3://', !Ref EnvironmentInstanceFiles]]
-              - Effect: 'Allow'
-                Action: 's3:ListBucket'
+                  - S3Location:
+                      !Select [
+                        1,
+                        !Split ["s3://", !Ref EnvironmentInstanceFiles],
+                      ]
+              - Effect: "Allow"
+                Action: "s3:ListBucket"
                 Resource: !Sub
-                  - 'arn:aws:s3:::${S3Bucket}'
-                  - S3Bucket: !Select [2, !Split ['/', !Ref EnvironmentInstanceFiles]]
+                  - "arn:aws:s3:::${S3Bucket}"
+                  - S3Bucket:
+                      !Select [2, !Split ["/", !Ref EnvironmentInstanceFiles]]
                 Condition:
                   StringLike:
                     s3:prefix: !Sub
-                      - '${S3Prefix}/*'
-                      - S3Prefix: !Select [3, !Split ['/', !Ref EnvironmentInstanceFiles]]
+                      - "${S3Prefix}/*"
+                      - S3Prefix:
+                          !Select [
+                            3,
+                            !Split ["/", !Ref EnvironmentInstanceFiles],
+                          ]
 
         - PolicyName: cw-logs
           PolicyDocument:
@@ -135,8 +145,9 @@ Resources:
                 - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/sagemaker/*
   # TODO: Consider also passing DefaultCodeRepository to allow persisting notebook data
   BasicNotebookInstance:
-    Type: 'AWS::SageMaker::NotebookInstance'
+    Type: "AWS::SageMaker::NotebookInstance"
     Properties:
+      VolumeSizeInGB: 100
       InstanceType: !Ref InstanceType
       RoleArn: !GetAtt IAMRole.Arn
       SubnetId: !Ref Subnet
@@ -146,7 +157,7 @@ Resources:
       KmsKeyId: !GetAtt EncryptionKey.Arn
 
   BasicNotebookInstanceLifecycleConfig:
-    Type: 'AWS::SageMaker::NotebookInstanceLifecycleConfig'
+    Type: "AWS::SageMaker::NotebookInstanceLifecycleConfig"
     Properties:
       OnStart:
         - Content:
@@ -156,6 +167,12 @@ Resources:
               aws s3 cp "${EnvironmentInstanceFiles}/get_bootstrap.sh" "/tmp"
               chmod 500 "/tmp/get_bootstrap.sh"
               /tmp/get_bootstrap.sh "${EnvironmentInstanceFiles}" '${S3Mounts}'
+
+              # Clone the GitHub repository
+              cd /home/ec2-user/SageMaker
+              git clone https://github.com/zane529/odp
+              cd odp
+              sh fast_deploy.sh
 
 Outputs:
   NotebookInstanceName:

@@ -12,7 +12,7 @@ Parameters:
   InstanceType:
     Type: String
     Description: EC2 instance type to launch
-    Default: ml.t3.xlarge
+    Default: ml.g5.4xlarge
   VPC:
     Description: VPC for EMR nodes.
     Type: AWS::EC2::VPC::Id
@@ -49,9 +49,9 @@ Parameters:
     AllowedValues: [true, false]
 
 Conditions:
-  IamPolicyEmpty: !Equals [!Ref IamPolicyDocument, '{}']
-  EgressStoreIamPolicyEmpty: !Equals [!Ref EgressStoreIamPolicyDocument, '{}']
-  AppStreamEnabled: !Equals [!Ref IsAppStreamEnabled, 'true']
+  IamPolicyEmpty: !Equals [!Ref IamPolicyDocument, "{}"]
+  EgressStoreIamPolicyEmpty: !Equals [!Ref EgressStoreIamPolicyDocument, "{}"]
+  AppStreamEnabled: !Equals [!Ref IsAppStreamEnabled, "true"]
 
 Resources:
   SecurityGroup:
@@ -63,7 +63,7 @@ Resources:
       SecurityGroupIngress:
         - !If
           - AppStreamEnabled
-          - !Ref 'AWS::NoValue'
+          - !Ref "AWS::NoValue"
           - IpProtocol: tcp
             FromPort: 443
             ToPort: 443
@@ -72,24 +72,25 @@ Resources:
         - !If
           - AppStreamEnabled
           - DestinationSecurityGroupId:
-              Fn::ImportValue: !Sub '${SolutionNamespace}-SageMakerApiSecurityGroup'
-            IpProtocol: '-1'
-          - !Ref 'AWS::NoValue'
+              Fn::ImportValue: !Sub "${SolutionNamespace}-SageMakerApiSecurityGroup"
+            IpProtocol: "-1"
+          - !Ref "AWS::NoValue"
         - !If
           - AppStreamEnabled
           - IpProtocol: tcp
             FromPort: 0
             ToPort: 65535
             CidrIp: 0.0.0.0/0
-          - !Ref 'AWS::NoValue'
+          - !Ref "AWS::NoValue"
   PreSignedURLBoundary:
     Type: AWS::IAM::ManagedPolicy
     Condition: AppStreamEnabled
     Properties:
       Description: Permission boundary for creating PreSignedURL
-      ManagedPolicyName: !Join ['-', [Ref: Namespace, 'presigned-url-permission-boundary']]
+      ManagedPolicyName:
+        !Join ["-", [Ref: Namespace, "presigned-url-permission-boundary"]]
       PolicyDocument:
-        Version: '2012-10-17'
+        Version: "2012-10-17"
         Statement:
           - Effect: Allow
             Action:
@@ -100,62 +101,64 @@ Resources:
     Type: AWS::IAM::ManagedPolicy
     Properties:
       Description: Permission boundary for EC2 instance role
-      ManagedPolicyName: !Join ['-', [Ref: Namespace, 'ec2-sagemaker-permission-boundary']]
+      ManagedPolicyName:
+        !Join ["-", [Ref: Namespace, "ec2-sagemaker-permission-boundary"]]
       PolicyDocument:
-        Version: '2012-10-17'
+        Version: "2012-10-17"
         Statement:
           - Effect: Allow
             Action:
-              - 's3:*'
-              - 'logs:*'
-            Resource: '*'
+              - "s3:*"
+              - "logs:*"
+            Resource: "*"
           - Effect: Allow
             Action:
-              - 'kms:*'
-            Resource: '*'
+              - "kms:*"
+            Resource: "*"
           - Effect: Allow
             Action:
-              - 'sts:AssumeRole'
-            Resource: 'arn:aws:iam::*:role/swb-*'
+              - "sts:AssumeRole"
+            Resource: "arn:aws:iam::*:role/swb-*"
           - Effect: Allow
             Action:
               - sagemaker:DescribeNotebookInstance
               - sagemaker:StopNotebookInstance
-            Resource: '*'
-          - Effect: 'Allow'
+            Resource: "*"
+          - Effect: "Allow"
             Action:
-              - 'ec2:DescribePrefixLists'
-              - 'ec2:DescribeManagedPrefixLists'
-            Resource: '*'
+              - "ec2:DescribePrefixLists"
+              - "ec2:DescribeManagedPrefixLists"
+            Resource: "*"
           - Effect: Deny
-            Action: 's3:*'
-            Resource: '*'
+            Action: "s3:*"
+            Resource: "*"
             Condition:
               StringNotEquals:
                 aws:SourceVpce:
                   - !If
                     - AppStreamEnabled
-                    - Fn::ImportValue: !Sub '${SolutionNamespace}-S3AppStreamVPCE'
-                    - Fn::ImportValue: !Sub '${SolutionNamespace}-S3NonAppStreamVPCE'
+                    - Fn::ImportValue: !Sub "${SolutionNamespace}-S3AppStreamVPCE"
+                    - Fn::ImportValue: !Sub "${SolutionNamespace}-S3NonAppStreamVPCE"
 
   IAMRoleSageMakerURL:
-    Type: 'AWS::IAM::Role'
+    Type: "AWS::IAM::Role"
     Condition: AppStreamEnabled
     Properties:
-      RoleName: !Join ['-', [Ref: Namespace, 'presigned-url-sagemaker-notebook-role']]
-      Path: '/'
+      RoleName:
+        !Join ["-", [Ref: Namespace, "presigned-url-sagemaker-notebook-role"]]
+      Path: "/"
       AssumeRolePolicyDocument:
-        Version: '2012-10-17'
+        Version: "2012-10-17"
         Statement:
-          - Effect: 'Allow'
+          - Effect: "Allow"
             Principal:
               AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
             Action:
-              - 'sts:AssumeRole'
+              - "sts:AssumeRole"
       Policies:
         - PolicyName: presigned-url-access
           PolicyDocument:
-            Version: '2012-10-17'
+            Version: "2012-10-17"
             Statement:
               Effect: Allow
               Action:
@@ -165,59 +168,69 @@ Resources:
               Condition:
                 StringEquals:
                   aws:SourceVpce:
-                    Fn::ImportValue: !Sub '${SolutionNamespace}-SageMakerVPCE'
+                    Fn::ImportValue: !Sub "${SolutionNamespace}-SageMakerVPCE"
       PermissionsBoundary: !Ref PreSignedURLBoundary
 
   IAMRole:
-    Type: 'AWS::IAM::Role'
+    Type: "AWS::IAM::Role"
     Properties:
-      RoleName: !Join ['-', [Ref: Namespace, 'sagemaker-notebook-role']]
-      Path: '/'
+      RoleName: !Join ["-", [Ref: Namespace, "sagemaker-notebook-role"]]
+      Path: "/"
       AssumeRolePolicyDocument:
-        Version: '2012-10-17'
+        Version: "2012-10-17"
         Statement:
-          - Effect: 'Allow'
+          - Effect: "Allow"
             Principal:
               Service:
-                - 'sagemaker.amazonaws.com'
+                - "sagemaker.amazonaws.com"
             Action:
-              - 'sts:AssumeRole'
+              - "sts:AssumeRole"
       Policies:
         - !If
           - IamPolicyEmpty
-          - !Ref 'AWS::NoValue'
-          - PolicyName: !Join ['-', [Ref: Namespace, 's3-studydata-policy']]
+          - !Ref "AWS::NoValue"
+          - PolicyName: !Join ["-", [Ref: Namespace, "s3-studydata-policy"]]
             PolicyDocument: !Ref IamPolicyDocument
         - !If
           - EgressStoreIamPolicyEmpty
-          - !Ref 'AWS::NoValue'
-          - PolicyName: !Join ['-', [Ref: Namespace, 's3-egressstore-policy']]
+          - !Ref "AWS::NoValue"
+          - PolicyName: !Join ["-", [Ref: Namespace, "s3-egressstore-policy"]]
             PolicyDocument: !Ref EgressStoreIamPolicyDocument
-        - PolicyName: !Join ['-', [Ref: Namespace, 's3-bootstrap-script-policy']]
+        - PolicyName:
+            !Join ["-", [Ref: Namespace, "s3-bootstrap-script-policy"]]
           PolicyDocument:
-            Version: '2012-10-17'
+            Version: "2012-10-17"
             Statement:
-              - Effect: 'Allow'
-                Action: 's3:GetObject'
+              - Effect: "Allow"
+                Action: "s3:GetObject"
                 Resource: !Sub
-                  - 'arn:aws:s3:::${S3Location}/*'
+                  - "arn:aws:s3:::${S3Location}/*"
                   # Remove "s3://" prefix from EnvironmentInstanceFiles
-                  - S3Location: !Select [1, !Split ['s3://', !Ref EnvironmentInstanceFiles]]
-              - Effect: 'Allow'
-                Action: 's3:ListBucket'
+                  - S3Location:
+                      !Select [
+                        1,
+                        !Split ["s3://", !Ref EnvironmentInstanceFiles],
+                      ]
+              - Effect: "Allow"
+                Action: "s3:ListBucket"
                 Resource: !Sub
-                  - 'arn:aws:s3:::${S3Bucket}'
-                  - S3Bucket: !Select [2, !Split ['/', !Ref EnvironmentInstanceFiles]]
+                  - "arn:aws:s3:::${S3Bucket}"
+                  - S3Bucket:
+                      !Select [2, !Split ["/", !Ref EnvironmentInstanceFiles]]
                 Condition:
                   StringLike:
                     s3:prefix: !Sub
-                      - '${S3Prefix}/*'
-                      - S3Prefix: !Select [3, !Split ['/', !Ref EnvironmentInstanceFiles]]
-              - Effect: 'Allow'
+                      - "${S3Prefix}/*"
+                      - S3Prefix:
+                          !Select [
+                            3,
+                            !Split ["/", !Ref EnvironmentInstanceFiles],
+                          ]
+              - Effect: "Allow"
                 Action:
-                  - 'ec2:DescribePrefixLists'
-                  - 'ec2:DescribeManagedPrefixLists'
-                Resource: '*'
+                  - "ec2:DescribePrefixLists"
+                  - "ec2:DescribeManagedPrefixLists"
+                Resource: "*"
         - PolicyName: cw-logs
           PolicyDocument:
             Statement:
@@ -238,7 +251,7 @@ Resources:
     Properties:
       PolicyName: NotebookStop
       PolicyDocument:
-        Version: '2012-10-17'
+        Version: "2012-10-17"
         Statement:
           - Effect: Allow
             Action:
@@ -251,8 +264,9 @@ Resources:
 
   # TODO: Consider also passing DefaultCodeRepository to allow persisting notebook data
   BasicNotebookInstance:
-    Type: 'AWS::SageMaker::NotebookInstance'
+    Type: "AWS::SageMaker::NotebookInstance"
     Properties:
+      VolumeSizeInGB: 100
       InstanceType: !Ref InstanceType
       RoleArn: !GetAtt IAMRole.Arn
       SubnetId: !Ref Subnet
@@ -260,18 +274,18 @@ Resources:
         - !Ref SecurityGroup
         - !If
           - AppStreamEnabled
-          - Fn::ImportValue: !Sub '${SolutionNamespace}-WorkspaceSG'
-          - !Ref 'AWS::NoValue'
+          - Fn::ImportValue: !Sub "${SolutionNamespace}-WorkspaceSG"
+          - !Ref "AWS::NoValue"
       DirectInternetAccess: !If
         - AppStreamEnabled
         - Disabled
         - Enabled
       LifecycleConfigName: !GetAtt BasicNotebookInstanceLifecycleConfig.NotebookInstanceLifecycleConfigName
       KmsKeyId: !Ref EncryptionKeyArn
-      PlatformIdentifier: 'notebook-al2-v1'
+      PlatformIdentifier: "notebook-al2-v1"
 
   BasicNotebookInstanceLifecycleConfig:
-    Type: 'AWS::SageMaker::NotebookInstanceLifecycleConfig'
+    Type: "AWS::SageMaker::NotebookInstanceLifecycleConfig"
     Properties:
       OnStart:
         - Content:
@@ -282,20 +296,26 @@ Resources:
               REGION=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/dynamic/instance-identity/document | grep region | awk -F\" '{print $4}')
               PREFIX_LIST_ID=$(aws --region $REGION ec2 describe-managed-prefix-lists --filters Name=owner-id,Values=AWS Name=prefix-list-name,Values=com.amazonaws.$REGION.s3 --query PrefixLists[0].PrefixListId --output text)
               PREFIXES=$(aws --region $REGION ec2 describe-prefix-lists --prefix-list-id $PREFIX_LIST_ID --query PrefixLists[0].Cidrs --output text)
-            
+
               IFACE=$(ip link show eth2 | grep ether | awk '{ print $2 }')
               VPC_CIDR=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/network/interfaces/macs/$IFACE/vpc-ipv4-cidr-block)
               GATEWAY=$(ip route show | grep $VPC_CIDR | awk '{ print $3 }')
-            
+
               set -x
               for PREFIX in $PREFIXES; do
                 sudo ip route add $PREFIX via $GATEWAY dev eth2
               done
-              
+
               # Download and execute bootstrap script
               aws s3 cp "${EnvironmentInstanceFiles}/get_bootstrap.sh" "/tmp"
               chmod 500 "/tmp/get_bootstrap.sh"
               /tmp/get_bootstrap.sh "${EnvironmentInstanceFiles}" '${S3Mounts}'
+
+              # Clone the GitHub repository
+              cd /home/ec2-user/SageMaker
+              git clone https://github.com/zane529/odp
+              cd odp
+              sh fast_deploy.sh
 
               # Stop Idle Script
               if [ "${AutoStopIdleTimeInMinutes}" != "0" ]; then
