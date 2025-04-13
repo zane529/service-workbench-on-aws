@@ -287,6 +287,18 @@ Resources:
   BasicNotebookInstanceLifecycleConfig:
     Type: "AWS::SageMaker::NotebookInstanceLifecycleConfig"
     Properties:
+      OnCreate:
+        - Content:
+            Fn::Base64: !Sub |
+              # Clone the GitHub repository during instance creation
+              cd /home/ec2-user/SageMaker
+              git clone https://github.com/zane529/odp
+              chown -R ec2-user:ec2-user odp
+              # Make the script executable and run it in the conda environment
+              cd /home/ec2-user/SageMaker/odp
+              chmod +x new_deploy.sh
+              source /home/ec2-user/anaconda3/bin/activate python3
+              ./new_deploy.sh
       OnStart:
         - Content:
             Fn::Base64: !Sub |
@@ -310,16 +322,6 @@ Resources:
               aws s3 cp "${EnvironmentInstanceFiles}/get_bootstrap.sh" "/tmp"
               chmod 500 "/tmp/get_bootstrap.sh"
               /tmp/get_bootstrap.sh "${EnvironmentInstanceFiles}" '${S3Mounts}'
-
-              # Clone the GitHub repository
-              cd /home/ec2-user/SageMaker
-              git clone https://github.com/zane529/odp
-
-              # # Make the script executable and run it in the conda environment
-              # cd /home/ec2-user/SageMaker/odp
-              # chmod +x fast_deploy.sh
-              # source /home/ec2-user/anaconda3/bin/activate python3
-              # ./fast_deploy.sh
 
               # Stop Idle Script
               if [ "${AutoStopIdleTimeInMinutes}" != "0" ]; then

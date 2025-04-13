@@ -134,6 +134,10 @@ echo "Copying Goofys from bootstrap.sh"
 cp "${FILES_DIR}/offline-packages/goofys" /usr/local/bin/goofys
 chmod +x "/usr/local/bin/goofys"
 
+echo "Install S3 Mountpoint"
+wget -O /tmp/mount-s3.rpm https://s3.amazonaws.com/mountpoint-s3-release/latest/x86_64/mount-s3.rpm
+sudo yum localinstall -y /tmp/mount-s3.rpm
+
 # Create S3 mount script and config file
 echo "Mounting S3"
 chmod +x "${FILES_DIR}/bin/mount_s3.sh"
