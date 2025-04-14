@@ -95,13 +95,15 @@ do
             then
                 printf 'Mounting external study "%s" at "%s" using role "%s" and region "%s" \n' "$study_id" "$study_dir" \
                 "$s3_role_arn" "$bucket_region"
-                goofys --region $bucket_region --profile $study_id --acl "bucket-owner-full-control" \
-                "${s3_bucket}:${s3_prefix}" "$study_dir"
+                # goofys --region $bucket_region --profile $study_id --acl "bucket-owner-full-control" \
+                # "${s3_bucket}:${s3_prefix}" "$study_dir"
+                mount-s3 --region $bucket_region --profile $study_id --cache /tmp/"${s3_bucket}" --prefix "${s3_prefix}" "${s3_bucket}" "$study_dir"
             else
                 printf 'Mounting external study "%s" at "%s" using role "%s", kms arn "%s" and region "%s" \n' "$study_id" "$study_dir" \
                 "$s3_role_arn" "$kms_arn" "$bucket_region"
-                goofys --region $bucket_region --profile $study_id --sse-kms $kms_arn --acl "bucket-owner-full-control" \
-                "${s3_bucket}:${s3_prefix}" "$study_dir"
+                # goofys --region $bucket_region --profile $study_id --sse-kms $kms_arn --acl "bucket-owner-full-control" \
+                # "${s3_bucket}:${s3_prefix}" "$study_dir"
+                mount-s3 --region $bucket_region --profile $study_id --sse-kms-key-id $kms_arn --cache /tmp/"${s3_bucket}" --prefix "${s3_prefix}" "${s3_bucket}" "$study_dir"
             fi
         fi
     fi
