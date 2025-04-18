@@ -164,19 +164,6 @@ class CreateStudy extends React.Component {
       </Segment>
     );
   }
-
-              <Button className="ml2" floated="right" color="blue" icon disabled={processing} type="submit">
-                Create Study
-              </Button>
-              <Button floated="right" disabled={processing} onClick={onCancel}>
-                Cancel
-              </Button>
-            </>
-          )}
-        </Form>
-      </Segment>
-    );
-  }
 }
 
 decorate(CreateStudy, {
