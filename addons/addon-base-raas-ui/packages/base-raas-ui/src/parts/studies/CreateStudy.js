@@ -15,7 +15,7 @@
 
 import React from 'react';
 import { inject, observer } from 'mobx-react';
-import { decorate, observable, action, runInAction } from 'mobx';
+import { decorate, observable, action, runInAction, toJS } from 'mobx';
 import { Button, Header, Modal, Segment, Dropdown as SemanticDropdown } from 'semantic-ui-react';
 import { displayError } from '@amzn/base-ui/dist/helpers/notification';
 import Dropdown from '@amzn/base-ui/dist/parts/helpers/fields/DropDown';
@@ -37,10 +37,11 @@ class CreateStudy extends React.Component {
       this.cleanModal();
       this.form = getCreateStudyForm();
       this.studyType = 's3'; // Default study type
+      console.log('Initial study type set to:', this.studyType);
       
-      // Remove studyType from form validation since we're handling it separately
+      // Make sure the form field has the initial value
       if (this.form.$('studyType')) {
-        this.form.del('studyType');
+        this.form.$('studyType').value = 's3';
       }
     });
   }
@@ -63,8 +64,14 @@ class CreateStudy extends React.Component {
   handleFormError = (_form, _errors) => {};
 
   handleStudyTypeChange = (e, { value }) => {
+    console.log('Study type changed to:', value);
     runInAction(() => {
       this.studyType = value;
+      
+      // Also update the form field if it exists
+      if (this.form.$('studyType')) {
+        this.form.$('studyType').value = value;
+      }
     });
   };
 
@@ -78,14 +85,12 @@ class CreateStudy extends React.Component {
       delete studyValues.categoryId;
       
       // Make sure studyType is included in the submission
-      studyValues.studyType = this.studyType;
+      const studyTypeValue = toJS(this.studyType);
+      studyValues.studyType = studyTypeValue;
       
-      // Validate studyType is not empty
-      if (!studyValues.studyType) {
-        form.$('studyType').invalidate('The Study type field is required.');
-        return;
-      }
-
+      // Debug log to check the value
+      console.log('Study type value:', studyTypeValue);
+      
       // Create study, clear form, and close modal
       await studiesStore.createStudy({ ...studyValues, category: categoryName }); // TODO the backend should really accept category id not the category name
       form.clear();
@@ -130,6 +135,8 @@ class CreateStudy extends React.Component {
       { key: 'ftp', text: 'FTP', value: 'ftp' },
     ];
 
+    console.log('Rendering form with study type:', this.studyType);
+
     return (
       <Segment clearing className="p3 mb3">
         <Form form={form} onCancel={this.handleFormCancel} onSuccess={this.handleFormSubmission}>
@@ -142,6 +149,7 @@ class CreateStudy extends React.Component {
                   options={studyTypeOptions}
                   fluid 
                   selection 
+                  defaultValue="s3"
                   value={this.studyType}
                   onChange={this.handleStudyTypeChange}
                   placeholder="Select the type of study"
