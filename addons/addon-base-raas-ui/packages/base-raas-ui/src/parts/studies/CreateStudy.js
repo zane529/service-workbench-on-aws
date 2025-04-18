@@ -37,11 +37,6 @@ class CreateStudy extends React.Component {
       this.cleanModal();
       this.form = getCreateStudyForm();
       this.studyType = 's3'; // Default study type
-      
-      // Set initial value for studyType field
-      if (this.form.$('studyType')) {
-        this.form.$('studyType').value = 's3';
-      }
     });
   }
 
@@ -65,10 +60,6 @@ class CreateStudy extends React.Component {
   handleStudyTypeChange = (e, { value }) => {
     runInAction(() => {
       this.studyType = value;
-      // Also update the form field value
-      if (this.form.$('studyType')) {
-        this.form.$('studyType').value = value;
-      }
     });
   };
 
@@ -134,15 +125,17 @@ class CreateStudy extends React.Component {
           {({ processing, /* onSubmit, */ onCancel }) => (
             <>
               <Input field={form.$('id')} />
-              <Dropdown 
-                label="Study type"
-                placeholder="Select the type of study"
-                options={studyTypeOptions}
-                fluid 
-                selection 
-                value={this.studyType}
-                onChange={this.handleStudyTypeChange}
-              />
+              <div className="field">
+                <label>Study type</label>
+                <Dropdown 
+                  placeholder="Select the type of study"
+                  options={studyTypeOptions}
+                  fluid 
+                  selection 
+                  value={this.studyType}
+                  onChange={this.handleStudyTypeChange}
+                />
+              </div>
               <YesNo field={form.$('categoryId')} />
               
               {this.studyType === 'ftp' && (
@@ -158,6 +151,19 @@ class CreateStudy extends React.Component {
               <Input field={form.$('name')} />
               <TextArea field={form.$('description')} />
               <Dropdown field={form.$('projectId')} options={projectIds} fluid selection />
+
+              <Button className="ml2" floated="right" color="blue" icon disabled={processing} type="submit">
+                Create Study
+              </Button>
+              <Button floated="right" disabled={processing} onClick={onCancel}>
+                Cancel
+              </Button>
+            </>
+          )}
+        </Form>
+      </Segment>
+    );
+  }
 
               <Button className="ml2" floated="right" color="blue" icon disabled={processing} type="submit">
                 Create Study
