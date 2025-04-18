@@ -34,6 +34,7 @@ class StudyRow extends React.Component {
     runInAction(() => {
       this.filesExpanded = false;
       this.permissionsExpanded = false;
+      this.ftpInfoExpanded = false;
     });
   }
 
@@ -68,6 +69,10 @@ class StudyRow extends React.Component {
     this.permissionsExpanded = !this.permissionsExpanded;
   };
 
+  handleFtpInfoExpanded = () => {
+    this.ftpInfoExpanded = !this.ftpInfoExpanded;
+  };
+
   render() {
     const isSelectable = this.isSelectable; // Internal and external guests can't select studies
     const study = this.study;
@@ -90,6 +95,7 @@ class StudyRow extends React.Component {
             {this.renderHeader(study)}
             {this.renderDescription(study)}
             {this.renderFilesAccordion(study)}
+            {this.renderFtpInfoAccordion(study)}
             {this.renderPermissionsAccordion(study)}
           </div>
         </div>
@@ -117,6 +123,7 @@ class StudyRow extends React.Component {
           <Header.Subheader>
             <span className="pt1 fs-8 color-grey">{study.id}</span>
             {study.projectId && <span className="fs-8 color-grey"> &middot; {study.projectId}</span>}
+            {study.studyType && <span className="fs-8 color-grey"> &middot; Type: {study.studyType}</span>}
           </Header.Subheader>
         </Header>
       </div>
@@ -150,6 +157,7 @@ class StudyRow extends React.Component {
   renderFilesAccordion(study) {
     if (study.isOpenDataStudy) return null;
     if (!study.uploadLocationEnabled) return null;
+    if (study.studyType === 'ftp') return null; // Don't show files accordion for FTP studies
     const expanded = this.filesExpanded;
 
     return (
@@ -162,6 +170,30 @@ class StudyRow extends React.Component {
           {expanded && study.uploadLocationEnabled && (
             <div className="mb2">
               <StudyFilesTable study={study} />
+            </div>
+          )}
+        </Accordion.Content>
+      </Accordion>
+    );
+  }
+
+  renderFtpInfoAccordion(study) {
+    if (study.studyType !== 'ftp') return null;
+    const expanded = this.ftpInfoExpanded;
+
+    return (
+      <Accordion className="mt2">
+        <Accordion.Title active={expanded} index={0} onClick={this.handleFtpInfoExpanded}>
+          <Icon name="dropdown" />
+          <b>FTP Information</b>
+        </Accordion.Title>
+        <Accordion.Content active={expanded}>
+          {expanded && (
+            <div className="mb2">
+              <div><strong>Host:</strong> {study.ftpHost}</div>
+              <div><strong>Port:</strong> {study.ftpPort || '21'}</div>
+              <div><strong>Username:</strong> {study.ftpUser}</div>
+              <div><strong>Path:</strong> {study.ftpPath}</div>
             </div>
           )}
         </Accordion.Content>
@@ -189,9 +221,11 @@ decorate(StudyRow, {
   handleFileSelection: action,
   handleFilesExpanded: action,
   handlePermissionsExpanded: action,
+  handleFtpInfoExpanded: action,
   study: computed,
   filesExpanded: observable,
   permissionsExpanded: observable,
+  ftpInfoExpanded: observable,
   isSelectable: computed,
 });
 

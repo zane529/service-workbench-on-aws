@@ -335,12 +335,17 @@ class StudyService extends Service {
 
     const id = rawStudyEntity.id;
 
+    // Set default studyType to 's3' if not provided
+    if (!rawStudyEntity.studyType) {
+      rawStudyEntity.studyType = 's3';
+    }
+
     // Prepare the db object
     const dbObject = toDbEntity(rawStudyEntity, { rev: 0, createdBy: by, updatedBy: by });
 
     // Create file upload location if necessary
     let studyFileLocation;
-    if (rawStudyEntity.uploadLocationEnabled) {
+    if (rawStudyEntity.uploadLocationEnabled && rawStudyEntity.studyType === 's3') {
       if (!dbObject.resources) {
         dbObject.resources = [];
       }
@@ -372,7 +377,7 @@ class StudyService extends Service {
     }
 
     // Create a zero-byte object for the study in the study bucket if requested
-    if (rawStudyEntity.uploadLocationEnabled) {
+    if (rawStudyEntity.uploadLocationEnabled && rawStudyEntity.studyType === 's3') {
       await this.s3Client
         .putObject({
           Bucket: this.studyDataBucket,

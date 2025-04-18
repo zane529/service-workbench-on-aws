@@ -36,6 +36,7 @@ class CreateStudy extends React.Component {
     runInAction(() => {
       this.cleanModal();
       this.form = getCreateStudyForm();
+      this.studyType = 's3'; // Default study type
     });
   }
 
@@ -55,6 +56,10 @@ class CreateStudy extends React.Component {
   };
 
   handleFormError = (_form, _errors) => {};
+
+  handleStudyTypeChange = (e, { value }) => {
+    this.studyType = value;
+  };
 
   handleFormSubmission = async form => {
     try {
@@ -104,6 +109,10 @@ class CreateStudy extends React.Component {
   renderCreateStudyForm() {
     const form = this.form;
     const projectIds = this.props.userStore.projectIdDropdown;
+    const studyTypeOptions = [
+      { key: 's3', text: 'S3', value: 's3' },
+      { key: 'ftp', text: 'FTP', value: 'ftp' },
+    ];
 
     return (
       <Segment clearing className="p3 mb3">
@@ -111,7 +120,26 @@ class CreateStudy extends React.Component {
           {({ processing, /* onSubmit, */ onCancel }) => (
             <>
               <Input field={form.$('id')} />
+              <Dropdown 
+                field={form.$('studyType')} 
+                options={studyTypeOptions} 
+                fluid 
+                selection 
+                onChange={this.handleStudyTypeChange}
+                defaultValue="s3"
+              />
               <YesNo field={form.$('categoryId')} />
+              
+              {this.studyType === 'ftp' && (
+                <>
+                  <Input field={form.$('ftpHost')} />
+                  <Input field={form.$('ftpPort')} defaultValue="21" />
+                  <Input field={form.$('ftpUser')} />
+                  <Input field={form.$('ftpPass')} type="password" />
+                  <Input field={form.$('ftpPath')} />
+                </>
+              )}
+              
               <Input field={form.$('name')} />
               <TextArea field={form.$('description')} />
               <Dropdown field={form.$('projectId')} options={projectIds} fluid selection />
@@ -133,9 +161,11 @@ class CreateStudy extends React.Component {
 decorate(CreateStudy, {
   form: observable,
   modalOpen: observable,
+  studyType: observable,
   getStudiesStore: observable,
   cleanModal: action,
   handleFormSubmission: action,
+  handleStudyTypeChange: action,
 });
 
 export default inject('userStore', 'studiesStoresMap')(observer(CreateStudy));

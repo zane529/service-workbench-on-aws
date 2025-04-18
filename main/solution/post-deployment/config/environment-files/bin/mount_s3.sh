@@ -8,7 +8,13 @@
 #  [{
 #   "id": "STUDY_ID",
 #   "bucket": "BUCKET_NAME",
-#   "prefix": "BUCKET_PREFIX"
+#   "prefix": "BUCKET_PREFIX",
+#   "studyType": "s3|ftp",
+#   "ftpHost": "FTP_HOST",
+#   "ftpPort": "FTP_PORT",
+#   "ftpUser": "FTP_USER",
+#   "ftpPass": "FTP_PASSWORD",
+#   "ftpPath": "FTP_PATH"
 # }, ...]
 CONFIG="/usr/local/etc/s3-mounts.json"
 MOUNT_DIR="${HOME}/studies"
@@ -63,47 +69,77 @@ for ((study_idx=0; study_idx<$num_mounts; study_idx++))
 do
     # Parse bucket/key info
     study_id="$(printf "%s" "$mounts" | jq -r ".[$study_idx].id" -)"
-    s3_bucket="$(printf "%s" "$mounts" | jq -r ".[$study_idx].bucket" -)"
-    s3_prefix="$(printf "%s" "$mounts" | jq -r ".[$study_idx].prefix" -)"
-    s3_role_arn="$(printf "%s" "$mounts" | jq -r ".[$study_idx].roleArn" -)"
-    kms_arn="$(printf "%s" "$mounts" | jq -r ".[$study_idx].kmsArn" -)"
-
-    # Mount S3 location if not already mounted
+    study_type="$(printf "%s" "$mounts" | jq -r ".[$study_idx].studyType // \"s3\"" -)"
+    
+    # Create study directory
     study_dir="${MOUNT_DIR}/${study_id}"
-    ps -U "$LOGNAME" -o "command" | egrep -q "goofys .* ${study_dir}$"
-    if [ $? -ne 0 ]
-    then
-        mkdir -p "$study_dir"
-        if [ "$s3_role_arn" == "null" ]
-        then
-            printf 'Mounting internal study "%s" at "%s"\n' "$study_id" "$study_dir"
-            #goofys --region $region --acl "bucket-owner-full-control" "${s3_bucket}:${s3_prefix}" "$study_dir"
-            mkdir -p /tmp/"${s3_bucket}"
-            mount-s3 --no-sign-request --cache /tmp/"${s3_bucket}" --prefix "${s3_prefix}" "${s3_bucket}" "$study_dir"
-        else
-            bucket_region="$(printf "%s" "$mounts" | jq -r ".[$study_idx].region" -)"
-            # BYOB studies have a region specified, but in case it isn't use the default region
-            if [[ $bucket_region == "null" ]]; then
-              printf 'Bucket region is not specified. Defaulting to "%s" for mounting \n' "$region"
-              bucket_region=$region
-            fi;
+    mkdir -p "$study_dir"
+    
+    if [ "$study_type" == "ftp" ]; then
+        # Handle FTP study type
+        ftp_host="$(printf "%s" "$mounts" | jq -r ".[$study_idx].ftpHost" -)"
+        ftp_port="$(printf "%s" "$mounts" | jq -r ".[$study_idx].ftpPort // \"21\"" -)"
+        ftp_user="$(printf "%s" "$mounts" | jq -r ".[$study_idx].ftpUser" -)"
+        ftp_pass="$(printf "%s" "$mounts" | jq -r ".[$study_idx].ftpPass" -)"
+        ftp_path="$(printf "%s" "$mounts" | jq -r ".[$study_idx].ftpPath" -)"
+        
+        # Check if already mounted
+        ps -U "$LOGNAME" -o "command" | grep -q "curlftpfs .* ${study_dir}$"
+        if [ $? -ne 0 ]; then
+            printf 'Mounting FTP study "%s" at "%s" using host "%s"\n' "$study_id" "$study_dir" "$ftp_host"
+            
+            # Store credentials in a secure file
+            echo "$ftp_user:$ftp_pass" > /tmp/ftp_creds_${study_id}
+            chmod 600 /tmp/ftp_creds_${study_id}
+            
+            # Mount FTP
+            curlftpfs -o user=$ftp_user:$ftp_pass ftp://$ftp_host:$ftp_port$ftp_path "$study_dir"
+            
+            # Clean up credentials file
+            rm /tmp/ftp_creds_${study_id}
+        fi
+    else
+        # Handle S3 study type (original logic)
+        s3_bucket="$(printf "%s" "$mounts" | jq -r ".[$study_idx].bucket" -)"
+        s3_prefix="$(printf "%s" "$mounts" | jq -r ".[$study_idx].prefix" -)"
+        s3_role_arn="$(printf "%s" "$mounts" | jq -r ".[$study_idx].roleArn" -)"
+        kms_arn="$(printf "%s" "$mounts" | jq -r ".[$study_idx].kmsArn" -)"
 
-            # make .aws dir if it doesn't already exist and add credentials
-            mkdir -p $AWS_CONFIG_DIR
-            append_role_to_credentials $study_id $s3_role_arn
-            if [ "$kms_arn" == "null" ]
+        # Mount S3 location if not already mounted
+        ps -U "$LOGNAME" -o "command" | egrep -q "goofys .* ${study_dir}$"
+        if [ $? -ne 0 ]
+        then
+            if [ "$s3_role_arn" == "null" ]
             then
-                printf 'Mounting external study "%s" at "%s" using role "%s" and region "%s" \n' "$study_id" "$study_dir" \
-                "$s3_role_arn" "$bucket_region"
-                # goofys --region $bucket_region --profile $study_id --acl "bucket-owner-full-control" \
-                # "${s3_bucket}:${s3_prefix}" "$study_dir"
-                mount-s3 --region $bucket_region --profile $study_id --cache /tmp/"${s3_bucket}" --prefix "${s3_prefix}" "${s3_bucket}" "$study_dir"
+                printf 'Mounting internal study "%s" at "%s"\n' "$study_id" "$study_dir"
+                #goofys --region $region --acl "bucket-owner-full-control" "${s3_bucket}:${s3_prefix}" "$study_dir"
+                mkdir -p /tmp/"${s3_bucket}"
+                mount-s3 --no-sign-request --cache /tmp/"${s3_bucket}" --prefix "${s3_prefix}" "${s3_bucket}" "$study_dir"
             else
-                printf 'Mounting external study "%s" at "%s" using role "%s", kms arn "%s" and region "%s" \n' "$study_id" "$study_dir" \
-                "$s3_role_arn" "$kms_arn" "$bucket_region"
-                # goofys --region $bucket_region --profile $study_id --sse-kms $kms_arn --acl "bucket-owner-full-control" \
-                # "${s3_bucket}:${s3_prefix}" "$study_dir"
-                mount-s3 --region $bucket_region --profile $study_id --sse-kms-key-id $kms_arn --cache /tmp/"${s3_bucket}" --prefix "${s3_prefix}" "${s3_bucket}" "$study_dir"
+                bucket_region="$(printf "%s" "$mounts" | jq -r ".[$study_idx].region" -)"
+                # BYOB studies have a region specified, but in case it isn't use the default region
+                if [[ $bucket_region == "null" ]]; then
+                  printf 'Bucket region is not specified. Defaulting to "%s" for mounting \n' "$region"
+                  bucket_region=$region
+                fi;
+
+                # make .aws dir if it doesn't already exist and add credentials
+                mkdir -p $AWS_CONFIG_DIR
+                append_role_to_credentials $study_id $s3_role_arn
+                if [ "$kms_arn" == "null" ]
+                then
+                    printf 'Mounting external study "%s" at "%s" using role "%s" and region "%s" \n' "$study_id" "$study_dir" \
+                    "$s3_role_arn" "$bucket_region"
+                    # goofys --region $bucket_region --profile $study_id --acl "bucket-owner-full-control" \
+                    # "${s3_bucket}:${s3_prefix}" "$study_dir"
+                    mount-s3 --region $bucket_region --profile $study_id --cache /tmp/"${s3_bucket}" --prefix "${s3_prefix}" "${s3_bucket}" "$study_dir"
+                else
+                    printf 'Mounting external study "%s" at "%s" using role "%s", kms arn "%s" and region "%s" \n' "$study_id" "$study_dir" \
+                    "$s3_role_arn" "$kms_arn" "$bucket_region"
+                    # goofys --region $bucket_region --profile $study_id --sse-kms $kms_arn --acl "bucket-owner-full-control" \
+                    # "${s3_bucket}:${s3_prefix}" "$study_dir"
+                    mount-s3 --region $bucket_region --profile $study_id --sse-kms-key-id $kms_arn --cache /tmp/"${s3_bucket}" --prefix "${s3_prefix}" "${s3_bucket}" "$study_dir"
+                fi
             fi
         fi
     fi
