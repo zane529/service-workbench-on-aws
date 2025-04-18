@@ -16,7 +16,7 @@
 import React from 'react';
 import { inject, observer } from 'mobx-react';
 import { decorate, observable, action, runInAction } from 'mobx';
-import { Button, Header, Modal, Segment } from 'semantic-ui-react';
+import { Button, Header, Modal, Segment, Dropdown as SemanticDropdown } from 'semantic-ui-react';
 import { displayError } from '@amzn/base-ui/dist/helpers/notification';
 import Dropdown from '@amzn/base-ui/dist/parts/helpers/fields/DropDown';
 import Form from '@amzn/base-ui/dist/parts/helpers/fields/Form';
@@ -125,15 +125,16 @@ class CreateStudy extends React.Component {
           {({ processing, /* onSubmit, */ onCancel }) => (
             <>
               <Input field={form.$('id')} />
-              <div className="field">
+              <div className="field mb4">
                 <label>Study type</label>
-                <Dropdown 
-                  placeholder="Select the type of study"
+                <SemanticDropdown 
                   options={studyTypeOptions}
                   fluid 
                   selection 
                   value={this.studyType}
                   onChange={this.handleStudyTypeChange}
+                  placeholder="Select the type of study"
+                  className="field"
                 />
               </div>
               <YesNo field={form.$('categoryId')} />
