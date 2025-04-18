@@ -75,13 +75,6 @@ const createStudyFields = {
     placeholder: 'The path on the FTP server',
     rules: ['string', 'max:1024'],
   },
-    rules: ['string', 'max:255'],
-  },
-  ftpPath: {
-    label: 'FTP Path',
-    placeholder: 'The path on the FTP server',
-    rules: ['string', 'max:1024'],
-  },
   name: {
     label: 'Name',
     placeholder: 'A name for the study',
