@@ -80,6 +80,9 @@ class CreateStudy extends React.Component {
       const studiesStore = this.getStudiesStore(categoryId);
 
       delete studyValues.categoryId;
+      
+      // Make sure studyType is included in the submission
+      studyValues.studyType = this.studyType;
 
       // Create study, clear form, and close modal
       await studiesStore.createStudy({ ...studyValues, category: categoryName }); // TODO the backend should really accept category id not the category name
@@ -120,6 +123,10 @@ class CreateStudy extends React.Component {
   renderCreateStudyForm() {
     const form = this.form;
     const projectIds = this.props.userStore.projectIdDropdown;
+    const studyTypeOptions = [
+      { key: 's3', text: 'S3', value: 's3' },
+      { key: 'ftp', text: 'FTP', value: 'ftp' },
+    ];
 
     return (
       <Segment clearing className="p3 mb3">
@@ -128,9 +135,12 @@ class CreateStudy extends React.Component {
             <>
               <Input field={form.$('id')} />
               <Dropdown 
-                field={form.$('studyType')} 
+                label="Study type"
+                placeholder="Select the type of study"
+                options={studyTypeOptions}
                 fluid 
                 selection 
+                value={this.studyType}
                 onChange={this.handleStudyTypeChange}
               />
               <YesNo field={form.$('categoryId')} />
