@@ -37,6 +37,11 @@ class CreateStudy extends React.Component {
       this.cleanModal();
       this.form = getCreateStudyForm();
       this.studyType = 's3'; // Default study type
+      
+      // Set initial value for studyType field
+      if (this.form.$('studyType')) {
+        this.form.$('studyType').value = 's3';
+      }
     });
   }
 
@@ -58,7 +63,13 @@ class CreateStudy extends React.Component {
   handleFormError = (_form, _errors) => {};
 
   handleStudyTypeChange = (e, { value }) => {
-    this.studyType = value;
+    runInAction(() => {
+      this.studyType = value;
+      // Also update the form field value
+      if (this.form.$('studyType')) {
+        this.form.$('studyType').value = value;
+      }
+    });
   };
 
   handleFormSubmission = async form => {
@@ -109,10 +120,6 @@ class CreateStudy extends React.Component {
   renderCreateStudyForm() {
     const form = this.form;
     const projectIds = this.props.userStore.projectIdDropdown;
-    const studyTypeOptions = [
-      { key: 's3', text: 'S3', value: 's3' },
-      { key: 'ftp', text: 'FTP', value: 'ftp' },
-    ];
 
     return (
       <Segment clearing className="p3 mb3">
@@ -122,11 +129,9 @@ class CreateStudy extends React.Component {
               <Input field={form.$('id')} />
               <Dropdown 
                 field={form.$('studyType')} 
-                options={studyTypeOptions} 
                 fluid 
                 selection 
                 onChange={this.handleStudyTypeChange}
-                defaultValue="s3"
               />
               <YesNo field={form.$('categoryId')} />
               
