@@ -37,6 +37,11 @@ class CreateStudy extends React.Component {
       this.cleanModal();
       this.form = getCreateStudyForm();
       this.studyType = 's3'; // Default study type
+      
+      // Remove studyType from form validation since we're handling it separately
+      if (this.form.$('studyType')) {
+        this.form.del('studyType');
+      }
     });
   }
 
@@ -74,6 +79,12 @@ class CreateStudy extends React.Component {
       
       // Make sure studyType is included in the submission
       studyValues.studyType = this.studyType;
+      
+      // Validate studyType is not empty
+      if (!studyValues.studyType) {
+        form.$('studyType').invalidate('The Study type field is required.');
+        return;
+      }
 
       // Create study, clear form, and close modal
       await studiesStore.createStudy({ ...studyValues, category: categoryName }); // TODO the backend should really accept category id not the category name
