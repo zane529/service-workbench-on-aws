@@ -189,7 +189,7 @@ class CreateStudy extends React.Component {
                   <Input field={form.$('ftpHost')} />
                   <Input field={form.$('ftpPort')} defaultValue="21" />
                   <Input field={form.$('ftpUser')} />
-                  <Input field={form.$('ftpPass')} type="password" />
+                  <Input field={form.$('ftpPass')} />
                   <Input field={form.$('ftpPath')} />
                 </>
               )}

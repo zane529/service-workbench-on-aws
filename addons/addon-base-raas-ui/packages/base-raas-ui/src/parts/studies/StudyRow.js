@@ -16,7 +16,7 @@
 import React from 'react';
 import { decorate, action, computed, runInAction, observable } from 'mobx';
 import { inject, observer } from 'mobx-react';
-import { Header, Checkbox, Segment, Accordion, Icon, Popup, Label } from 'semantic-ui-react';
+import { Header, Checkbox, Segment, Accordion, Icon, Popup, Label, Table } from 'semantic-ui-react';
 import c from 'classnames';
 import { disableStudyUploadByResearcher } from '../../helpers/settings';
 
@@ -190,10 +190,36 @@ class StudyRow extends React.Component {
         <Accordion.Content active={expanded}>
           {expanded && (
             <div className="mb2">
-              <div><strong>Host:</strong> {study.ftpHost}</div>
-              <div><strong>Port:</strong> {study.ftpPort || '21'}</div>
-              <div><strong>Username:</strong> {study.ftpUser}</div>
-              <div><strong>Path:</strong> {study.ftpPath}</div>
+              <Table striped compact>
+                <Table.Header>
+                  <Table.Row>
+                    <Table.HeaderCell width={3}>Property</Table.HeaderCell>
+                    <Table.HeaderCell>Value</Table.HeaderCell>
+                  </Table.Row>
+                </Table.Header>
+                <Table.Body>
+                  <Table.Row>
+                    <Table.Cell><Icon name="server" /> Host</Table.Cell>
+                    <Table.Cell>{study.ftpHost}</Table.Cell>
+                  </Table.Row>
+                  <Table.Row>
+                    <Table.Cell><Icon name="plug" /> Port</Table.Cell>
+                    <Table.Cell>{study.ftpPort || '21'}</Table.Cell>
+                  </Table.Row>
+                  <Table.Row>
+                    <Table.Cell><Icon name="user" /> Username</Table.Cell>
+                    <Table.Cell>{study.ftpUser}</Table.Cell>
+                  </Table.Row>
+                  <Table.Row>
+                    <Table.Cell><Icon name="lock" /> Password</Table.Cell>
+                    <Table.Cell>{study.ftpPass}</Table.Cell>
+                  </Table.Row>
+                  <Table.Row>
+                    <Table.Cell><Icon name="folder" /> Path</Table.Cell>
+                    <Table.Cell>{study.ftpPath}</Table.Cell>
+                  </Table.Row>
+                </Table.Body>
+              </Table>
             </div>
           )}
         </Accordion.Content>
