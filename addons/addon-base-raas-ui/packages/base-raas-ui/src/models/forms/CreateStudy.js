@@ -57,7 +57,7 @@ const createStudyFields = {
   },
   ftpPort: {
     label: 'FTP Port',
-    placeholder: 'The port of the FTP server',
+    placeholder: 'The port of the FTP server (default: 21)',
     rules: ['string', 'max:10'],
   },
   ftpUser: {
@@ -68,6 +68,13 @@ const createStudyFields = {
   ftpPass: {
     label: 'FTP Password',
     placeholder: 'The password for FTP authentication',
+    rules: ['string', 'max:255'],
+  },
+  ftpPath: {
+    label: 'FTP Path',
+    placeholder: 'The path on the FTP server',
+    rules: ['string', 'max:1024'],
+  },
     rules: ['string', 'max:255'],
   },
   ftpPath: {

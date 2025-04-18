@@ -74,6 +74,13 @@ const Study = types
     updatedBy: '',
     filesStore: types.maybe(StudyFilesStore),
     permissionsStore: types.maybe(StudyPermissionsStore),
+    // Added fields for study type and FTP information
+    studyType: types.optional(types.string, 's3'),
+    ftpHost: types.maybeNull(types.string),
+    ftpPort: types.maybeNull(types.string),
+    ftpUser: types.maybeNull(types.string),
+    ftpPass: types.maybeNull(types.string),
+    ftpPath: types.maybeNull(types.string),
   })
   .actions(self => ({
     setStudy(rawStudy) {

@@ -116,7 +116,7 @@ class StudyRow extends React.Component {
     return (
       <div>
         <Header as="h3" color="blue" className={c('mt2', isSelectable ? 'cursor-pointer' : '')} {...onClickAttr}>
-          {study.uploadLocationEnabled && study.canUpload && !disableResearcherAccess && (
+          {study.uploadLocationEnabled && study.canUpload && !disableResearcherAccess && study.studyType !== 'ftp' && (
             <UploadStudyFiles studyId={study.id} />
           )}
           {study.name}

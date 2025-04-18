@@ -72,6 +72,32 @@ class CreateStudy extends React.Component {
       if (this.form.$('studyType')) {
         this.form.$('studyType').value = value;
       }
+      
+      // Add or remove FTP fields based on study type
+      if (value === 'ftp') {
+        if (!this.form.$('ftpHost')) {
+          this.form.add({ name: 'ftpHost', label: 'FTP Host', rules: 'required|string|max:255' });
+        }
+        if (!this.form.$('ftpPort')) {
+          this.form.add({ name: 'ftpPort', label: 'FTP Port', value: '21', rules: 'string|max:10' });
+        }
+        if (!this.form.$('ftpUser')) {
+          this.form.add({ name: 'ftpUser', label: 'FTP Username', rules: 'required|string|max:255' });
+        }
+        if (!this.form.$('ftpPass')) {
+          this.form.add({ name: 'ftpPass', label: 'FTP Password', rules: 'string|max:255' });
+        }
+        if (!this.form.$('ftpPath')) {
+          this.form.add({ name: 'ftpPath', label: 'FTP Path', rules: 'string|max:1024' });
+        }
+      } else {
+        // Remove FTP fields if they exist
+        ['ftpHost', 'ftpPort', 'ftpUser', 'ftpPass', 'ftpPath'].forEach(field => {
+          if (this.form.$(field)) {
+            this.form.del(field);
+          }
+        });
+      }
     });
   };
 
