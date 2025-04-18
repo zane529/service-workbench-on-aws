@@ -88,8 +88,19 @@ class EnvironmentMountService extends Service {
       // external studies because the folder information is already available on the
       // study entity
       const item = _.omit(study, ['category']);
+      // Add studyType to the item if it exists, default to 's3'
+      item.studyType = study.studyType || 's3';
+      
       if (_.isEmpty(study.resources)) {
-        s3Mounts.push(_.omit(item, ['resources']));
+        // For studies without resources (like ftp type studies), still include them in s3Mounts
+        // Include FTP specific fields if they exist
+        if (item.studyType === 'ftp') {
+          // Preserve FTP specific fields
+          const ftpFields = _.pick(study, ['ftpHost', 'ftpPort', 'ftpUser', 'ftpPass', 'ftpPath']);
+          s3Mounts.push({ ..._.omit(item, ['resources']), ...ftpFields });
+        } else {
+          s3Mounts.push(_.omit(item, ['resources']));
+        }
         return;
       }
       _.forEach(study.resources, resource => {
@@ -831,6 +842,12 @@ class EnvironmentMountService extends Service {
         resources = [],
         // roleArn, this not available from the study entity, it needs to be checked out
         kmsArn,
+        studyType,
+        ftpHost,
+        ftpPort,
+        ftpUser,
+        ftpPass,
+        ftpPath,
       } = studyEntity;
 
       return {
@@ -845,6 +862,12 @@ class EnvironmentMountService extends Service {
         kmsArn,
         readable: read,
         writeable: write,
+        studyType,
+        ftpHost,
+        ftpPort,
+        ftpUser,
+        ftpPass,
+        ftpPath,
       };
     };
 
