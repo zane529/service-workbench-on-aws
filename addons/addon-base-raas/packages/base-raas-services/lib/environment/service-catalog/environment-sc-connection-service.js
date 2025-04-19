@@ -195,8 +195,20 @@ class EnvironmentScConnectionService extends Service {
       // 修改为直接打开 JupyterLab 而不是 Jupyter Notebook
       let authorizedUrl = _.get(sageMakerResponse, 'AuthorizedUrl');
       if (authorizedUrl) {
-        // 将 URL 从 Jupyter Notebook 修改为 JupyterLab
-        authorizedUrl = authorizedUrl.replace('/tree?', '/lab?');
+        // 检查 URL 是否已包含路径
+        if (authorizedUrl.includes('/tree?')) {
+          // 如果包含 /tree? 则替换为 /lab?
+          authorizedUrl = authorizedUrl.replace('/tree?', '/lab?');
+        } else {
+          // 如果不包含路径，则在查询参数前添加 /lab
+          const urlParts = authorizedUrl.split('?');
+          if (urlParts.length > 1) {
+            authorizedUrl = `${urlParts[0]}/lab?${urlParts[1]}`;
+          } else {
+            // 如果没有查询参数，直接添加 /lab
+            authorizedUrl = `${authorizedUrl}/lab`;
+          }
+        }
       }
       connection.url = authorizedUrl;
     }
@@ -521,8 +533,21 @@ class EnvironmentScConnectionService extends Service {
     // 修改为直接打开 JupyterLab 而不是 Jupyter Notebook
     let authorizedUrl = _.get(sageMakerResponse, 'AuthorizedUrl');
     if (authorizedUrl) {
-      // 将 URL 从 Jupyter Notebook 修改为 JupyterLab
-      authorizedUrl = authorizedUrl.replace('/tree?', '/lab?');
+      // 检查 URL 是否已包含路径
+      if (authorizedUrl.includes('/tree?')) {
+        // 如果包含 /tree? 则替换为 /lab?
+        authorizedUrl = authorizedUrl.replace('/tree?', '/lab?');
+      } else {
+        // 如果不包含路径，则在查询参数前添加 /lab
+        const urlParts = authorizedUrl.split('?');
+        if (urlParts.length > 1) {
+          authorizedUrl = `${urlParts[0]}/lab?${urlParts[1]}`;
+        } else {
+          // 如果没有查询参数，直接添加 /lab
+          authorizedUrl = `${authorizedUrl}/lab`;
+        }
+      }
+      sageMakerResponse.AuthorizedUrl = authorizedUrl;
     }
     return sageMakerResponse;
   }
