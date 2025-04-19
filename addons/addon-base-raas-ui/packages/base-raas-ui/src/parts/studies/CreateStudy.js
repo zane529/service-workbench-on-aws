@@ -15,8 +15,8 @@
 
 import React from 'react';
 import { inject, observer } from 'mobx-react';
-import { decorate, observable, action, runInAction } from 'mobx';
-import { Button, Header, Modal, Segment } from 'semantic-ui-react';
+import { decorate, observable, action, runInAction, toJS } from 'mobx';
+import { Button, Header, Modal, Segment, Dropdown as SemanticDropdown } from 'semantic-ui-react';
 import { displayError } from '@amzn/base-ui/dist/helpers/notification';
 import Dropdown from '@amzn/base-ui/dist/parts/helpers/fields/DropDown';
 import Form from '@amzn/base-ui/dist/parts/helpers/fields/Form';
@@ -36,6 +36,13 @@ class CreateStudy extends React.Component {
     runInAction(() => {
       this.cleanModal();
       this.form = getCreateStudyForm();
+      this.studyType = 's3'; // Default study type
+      console.log('Initial study type set to:', this.studyType);
+      
+      // Make sure the form field has the initial value
+      if (this.form.$('studyType')) {
+        this.form.$('studyType').value = 's3';
+      }
     });
   }
 
@@ -56,6 +63,44 @@ class CreateStudy extends React.Component {
 
   handleFormError = (_form, _errors) => {};
 
+  handleStudyTypeChange = (e, { value }) => {
+    console.log('Study type changed to:', value);
+    runInAction(() => {
+      this.studyType = value;
+      
+      // Also update the form field if it exists
+      if (this.form.$('studyType')) {
+        this.form.$('studyType').value = value;
+      }
+      
+      // Add or remove FTP fields based on study type
+      if (value === 'ftp') {
+        if (!this.form.$('ftpHost')) {
+          this.form.add({ name: 'ftpHost', label: 'FTP Host', rules: 'required|string|max:255' });
+        }
+        if (!this.form.$('ftpPort')) {
+          this.form.add({ name: 'ftpPort', label: 'FTP Port', value: '21', rules: 'string|max:10' });
+        }
+        if (!this.form.$('ftpUser')) {
+          this.form.add({ name: 'ftpUser', label: 'FTP Username', rules: 'required|string|max:255' });
+        }
+        if (!this.form.$('ftpPass')) {
+          this.form.add({ name: 'ftpPass', label: 'FTP Password', rules: 'string|max:255' });
+        }
+        if (!this.form.$('ftpPath')) {
+          this.form.add({ name: 'ftpPath', label: 'FTP Path', rules: 'string|max:1024' });
+        }
+      } else {
+        // Remove FTP fields if they exist
+        ['ftpHost', 'ftpPort', 'ftpUser', 'ftpPass', 'ftpPath'].forEach(field => {
+          if (this.form.$(field)) {
+            this.form.del(field);
+          }
+        });
+      }
+    });
+  };
+
   handleFormSubmission = async form => {
     try {
       const studyValues = form.values();
@@ -64,7 +109,14 @@ class CreateStudy extends React.Component {
       const studiesStore = this.getStudiesStore(categoryId);
 
       delete studyValues.categoryId;
-
+      
+      // Make sure studyType is included in the submission
+      const studyTypeValue = toJS(this.studyType);
+      studyValues.studyType = studyTypeValue;
+      
+      // Debug log to check the value
+      console.log('Study type value:', studyTypeValue);
+      
       // Create study, clear form, and close modal
       await studiesStore.createStudy({ ...studyValues, category: categoryName }); // TODO the backend should really accept category id not the category name
       form.clear();
@@ -104,6 +156,12 @@ class CreateStudy extends React.Component {
   renderCreateStudyForm() {
     const form = this.form;
     const projectIds = this.props.userStore.projectIdDropdown;
+    const studyTypeOptions = [
+      { key: 's3', text: 'S3', value: 's3' },
+      { key: 'ftp', text: 'FTP', value: 'ftp' },
+    ];
+
+    console.log('Rendering form with study type:', this.studyType);
 
     return (
       <Segment clearing className="p3 mb3">
@@ -111,7 +169,31 @@ class CreateStudy extends React.Component {
           {({ processing, /* onSubmit, */ onCancel }) => (
             <>
               <Input field={form.$('id')} />
+              <div className="field mb4">
+                <label>Study type</label>
+                <SemanticDropdown 
+                  options={studyTypeOptions}
+                  fluid 
+                  selection 
+                  defaultValue="s3"
+                  value={this.studyType}
+                  onChange={this.handleStudyTypeChange}
+                  placeholder="Select the type of study"
+                  className="field"
+                />
+              </div>
               <YesNo field={form.$('categoryId')} />
+              
+              {this.studyType === 'ftp' && (
+                <>
+                  <Input field={form.$('ftpHost')} />
+                  <Input field={form.$('ftpPort')} defaultValue="21" />
+                  <Input field={form.$('ftpUser')} />
+                  <Input field={form.$('ftpPass')} />
+                  <Input field={form.$('ftpPath')} />
+                </>
+              )}
+              
               <Input field={form.$('name')} />
               <TextArea field={form.$('description')} />
               <Dropdown field={form.$('projectId')} options={projectIds} fluid selection />
@@ -133,9 +215,11 @@ class CreateStudy extends React.Component {
 decorate(CreateStudy, {
   form: observable,
   modalOpen: observable,
+  studyType: observable,
   getStudiesStore: observable,
   cleanModal: action,
   handleFormSubmission: action,
+  handleStudyTypeChange: action,
 });
 
 export default inject('userStore', 'studiesStoresMap')(observer(CreateStudy));

@@ -238,7 +238,7 @@ class EnvironmentResourceService extends Service {
 
     // We loop through all the studies and add items to the s3 mount information array
     _.forEach(studies, study => {
-      const { id, bucket, kmsScope, folder, region, awsPartition, envPermission = {} } = study;
+      const { id, bucket, kmsScope, folder, region, awsPartition, envPermission = {}, studyType = 's3' } = study;
       const { read, write } = envPermission;
       // The logic to determining the kmsArn logic is:
       // - If the study kms scope is 'bucket', then we don't include the kmsArn in the mount information, this way
@@ -246,7 +246,7 @@ class EnvironmentResourceService extends Service {
       // - If the study kms scope is 'study', then we need to include the kmsArn in the mount information
       const kmsArn = kmsScope === 'study' ? study.kmsArn : undefined;
       const roleArn = _.get(environmentScEntity, 'studyRoles', {})[id];
-      const item = { id, bucket, region, kmsArn, roleArn, prefix: folder, readable: read, writeable: write };
+      const item = { id, bucket, region, kmsArn, roleArn, prefix: folder, readable: read, writeable: write, studyType };
       if (awsPartition !== 'aws') item.awsPartition = awsPartition;
 
       s3Mounts.push(item);

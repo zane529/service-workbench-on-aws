@@ -83,11 +83,27 @@ class EnvironmentMountService extends Service {
     const s3Mounts = [];
     const s3Prefixes = [];
 
+    // 首先处理所有的 FTP 类型的 study
+    const ftpStudies = _.filter(studies, study => study.studyType === 'ftp');
+    _.forEach(ftpStudies, study => {
+      const item = _.omit(study, ['category']);
+      // 保留 FTP 特有字段
+      const ftpFields = _.pick(study, ['ftpHost', 'ftpPort', 'ftpUser', 'ftpPass', 'ftpPath']);
+      s3Mounts.push({ ...item, ...ftpFields });
+    });
+
+    // 然后处理所有的 S3 类型的 study
     _.forEach(studies, study => {
+      // 如果是 FTP 类型的 study，已经在上面处理过了，这里跳过
+      if (study.studyType === 'ftp') return;
+      
       // 'resources' are for the default/internal studies. No need to parse arn for
       // external studies because the folder information is already available on the
       // study entity
       const item = _.omit(study, ['category']);
+      // Add studyType to the item if it exists, default to 's3'
+      item.studyType = study.studyType || 's3';
+      
       if (_.isEmpty(study.resources)) {
         s3Mounts.push(_.omit(item, ['resources']));
         return;
@@ -831,6 +847,12 @@ class EnvironmentMountService extends Service {
         resources = [],
         // roleArn, this not available from the study entity, it needs to be checked out
         kmsArn,
+        studyType,
+        ftpHost,
+        ftpPort,
+        ftpUser,
+        ftpPass,
+        ftpPath,
       } = studyEntity;
 
       return {
@@ -845,6 +867,12 @@ class EnvironmentMountService extends Service {
         kmsArn,
         readable: read,
         writeable: write,
+        studyType,
+        ftpHost,
+        ftpPort,
+        ftpUser,
+        ftpPass,
+        ftpPath,
       };
     };
 

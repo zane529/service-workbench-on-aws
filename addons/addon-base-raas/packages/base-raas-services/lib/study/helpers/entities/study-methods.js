@@ -170,6 +170,11 @@ function toStudyEntity(dbEntity) {
     entity.status = 'reachable';
   }
 
+  // Default studyType to 's3' for backward compatibility
+  if (_.isEmpty(entity.studyType)) {
+    entity.studyType = 's3';
+  }
+
   return entity;
 }
 

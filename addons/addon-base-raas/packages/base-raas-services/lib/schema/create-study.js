@@ -75,6 +75,31 @@ const schema = {
       type: 'string',
       enum: ['readonly', 'readwrite'],
     },
+    // Added fields for study type and FTP information
+    studyType: {
+      type: 'string',
+      enum: ['s3', 'ftp'],
+    },
+    ftpHost: {
+      type: 'string',
+      maxLength: 255,
+    },
+    ftpPort: {
+      type: 'string',
+      maxLength: 10,
+    },
+    ftpUser: {
+      type: 'string',
+      maxLength: 255,
+    },
+    ftpPass: {
+      type: 'string',
+      maxLength: 255,
+    },
+    ftpPath: {
+      type: 'string',
+      maxLength: 1024,
+    },
   },
   required: ['id', 'category'],
 };

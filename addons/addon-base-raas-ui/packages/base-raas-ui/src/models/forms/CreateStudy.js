@@ -26,6 +26,17 @@ const createStudyFields = {
     },
     rules: ['required', 'string', 'between:1,100', 'regex:/^[A-Za-z0-9-_]+$/'],
   },
+  studyType: {
+    label: 'Study type',
+    placeholder: 'Select the type of study',
+    rules: ['required', 'string'],
+    extra: {
+      options: [
+        { value: 's3', label: 'S3' },
+        { value: 'ftp', label: 'FTP' },
+      ],
+    },
+  },
   categoryId: {
     label: '', // not shown because extra.showHeader = false
     extra: {
@@ -38,6 +49,31 @@ const createStudyFields = {
       showHeader: false,
     },
     rules: ['required'],
+  },
+  ftpHost: {
+    label: 'FTP Host',
+    placeholder: 'The hostname of the FTP server',
+    rules: ['string', 'max:255'],
+  },
+  ftpPort: {
+    label: 'FTP Port',
+    placeholder: 'The port of the FTP server (default: 21)',
+    rules: ['string', 'max:10'],
+  },
+  ftpUser: {
+    label: 'FTP Username',
+    placeholder: 'The username for FTP authentication',
+    rules: ['string', 'max:255'],
+  },
+  ftpPass: {
+    label: 'FTP Password',
+    placeholder: 'The password for FTP authentication',
+    rules: ['string', 'max:255'],
+  },
+  ftpPath: {
+    label: 'FTP Path',
+    placeholder: 'The path on the FTP server',
+    rules: ['string', 'max:1024'],
   },
   name: {
     label: 'Name',
