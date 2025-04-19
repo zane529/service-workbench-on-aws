@@ -193,6 +193,22 @@ class EnvironmentResourceService extends Service {
   async provideStudyMount(requestContext, { studies: allStudies, s3Mounts }) {
     // Legacy access strategy is only applicable for studies that have resources attributes
     const studies = _.filter(allStudies, study => !_.isEmpty(study.resources));
+    
+    // 首先处理所有的 FTP 类型的 study
+    const ftpStudies = _.filter(allStudies, study => study.studyType === 'ftp');
+    _.forEach(ftpStudies, study => {
+      const { id, envPermission = {} } = study;
+      const { read, write } = envPermission;
+      // 保留 FTP 特有字段
+      const ftpFields = _.pick(study, ['ftpHost', 'ftpPort', 'ftpUser', 'ftpPass', 'ftpPath']);
+      s3Mounts.push({ 
+        id, 
+        readable: read, 
+        writeable: write, 
+        studyType: 'ftp',
+        ...ftpFields 
+      });
+    });
 
     if (_.isEmpty(studies)) return s3Mounts; // No legacy access to deal with
 
@@ -202,6 +218,9 @@ class EnvironmentResourceService extends Service {
     const addToMounts = mount => s3Mounts.push(mount);
 
     _.forEach(studies, study => {
+      // 如果是 FTP 类型的 study，已经在上面处理过了，这里跳过
+      if (study.studyType === 'ftp') return;
+      
       const { id, resources = [], envPermission = {}, studyType = 's3' } = study;
       const { read, write } = envPermission;
       const item = { id, readable: read, writeable: write, studyType };
