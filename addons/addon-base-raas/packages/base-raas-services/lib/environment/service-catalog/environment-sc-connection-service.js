@@ -192,7 +192,13 @@ class EnvironmentScConnectionService extends Service {
       };
       const sageMakerResponse = await sagemaker.createPresignedNotebookInstanceUrl(params).promise();
 
-      connection.url = _.get(sageMakerResponse, 'AuthorizedUrl');
+      // 修改为直接打开 JupyterLab 而不是 Jupyter Notebook
+      let authorizedUrl = _.get(sageMakerResponse, 'AuthorizedUrl');
+      if (authorizedUrl) {
+        // 将 URL 从 Jupyter Notebook 修改为 JupyterLab
+        authorizedUrl = authorizedUrl.replace('/tree?', '/lab?');
+      }
+      connection.url = authorizedUrl;
     }
 
     if (
@@ -512,6 +518,12 @@ class EnvironmentScConnectionService extends Service {
       NotebookInstanceName: connection.info,
     };
     const sageMakerResponse = await sagemaker.createPresignedNotebookInstanceUrl(params).promise();
+    // 修改为直接打开 JupyterLab 而不是 Jupyter Notebook
+    let authorizedUrl = _.get(sageMakerResponse, 'AuthorizedUrl');
+    if (authorizedUrl) {
+      // 将 URL 从 Jupyter Notebook 修改为 JupyterLab
+      authorizedUrl = authorizedUrl.replace('/tree?', '/lab?');
+    }
     return sageMakerResponse;
   }
 
