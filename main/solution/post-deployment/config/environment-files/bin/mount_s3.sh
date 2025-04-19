@@ -69,7 +69,7 @@ for ((study_idx=0; study_idx<$num_mounts; study_idx++))
 do
     # Parse bucket/key info
     study_id="$(printf "%s" "$mounts" | jq -r ".[$study_idx].id" -)"
-    study_type="$(printf "%s" "$mounts" | jq -r ".[$study_idx].studyType // \"s3\"" -)"
+    study_type="$(printf "%s" "$mounts" | jq -r ".[$study_idx].studyType" -)"
     
     # Create study directory
     study_dir="${MOUNT_DIR}/${study_id}"
@@ -78,7 +78,7 @@ do
     if [ "$study_type" == "ftp" ]; then
         # Handle FTP study type
         ftp_host="$(printf "%s" "$mounts" | jq -r ".[$study_idx].ftpHost" -)"
-        ftp_port="$(printf "%s" "$mounts" | jq -r ".[$study_idx].ftpPort // \"21\"" -)"
+        ftp_port="$(printf "%s" "$mounts" | jq -r ".[$study_idx].ftpPort" -)"
         ftp_user="$(printf "%s" "$mounts" | jq -r ".[$study_idx].ftpUser" -)"
         ftp_pass="$(printf "%s" "$mounts" | jq -r ".[$study_idx].ftpPass" -)"
         ftp_path="$(printf "%s" "$mounts" | jq -r ".[$study_idx].ftpPath" -)"

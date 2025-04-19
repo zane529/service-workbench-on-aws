@@ -318,9 +318,6 @@ Resources:
                 sudo ip route add $PREFIX via $GATEWAY dev eth2
               done
 
-              # Install curlftpfs for FTP mounting
-              sudo yum install -y curlftpfs
-
               # Download and execute bootstrap script
               aws s3 cp "${EnvironmentInstanceFiles}/get_bootstrap.sh" "/tmp"
               chmod 500 "/tmp/get_bootstrap.sh"
