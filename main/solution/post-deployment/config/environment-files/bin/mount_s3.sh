@@ -93,7 +93,7 @@ do
             chmod 600 /tmp/ftp_creds_${study_id}
             
             # Mount FTP
-            curlftpfs -o user=$ftp_user:$ftp_pass ftp://$ftp_host:$ftp_port$ftp_path "$study_dir"
+            curlftpfs -o user=$ftp_user:$ftp_pass ftp://$ftp_host:$ftp_port/$ftp_path "$study_dir"
             
             # Clean up credentials file
             rm /tmp/ftp_creds_${study_id}
