@@ -121,7 +121,8 @@ do
                     mount-s3 --no-sign-request --cache /tmp/"${s3_bucket}" --prefix "${s3_prefix}" "${s3_bucket}" "$study_dir"
                 # S3
                 else
-                    mount-s3 --region $bucket_region --cache /tmp/"${s3_bucket}" --prefix "${s3_prefix}" "${s3_bucket}" "$study_dir"
+                    mount-s3 --region $region --cache /tmp/"${s3_bucket}" --prefix "${s3_prefix}" "${s3_bucket}" "$study_dir"
+                fi
             else
                 bucket_region="$(printf "%s" "$mounts" | jq -r ".[$study_idx].region" -)"
                 # BYOB studies have a region specified, but in case it isn't use the default region
@@ -133,7 +134,7 @@ do
                 # make .aws dir if it doesn't already exist and add credentials
                 mkdir -p $AWS_CONFIG_DIR
                 append_role_to_credentials $study_id $s3_role_arn
-                mkdir -p /tmp/"${s3_bucket}"
+                mkdir /tmp/"${s3_bucket}"
                 if [ "$kms_arn" == "null" ]
                 then
                     printf 'Mounting external study "%s" at "%s" using role "%s" and region "%s" \n' "$study_id" "$study_dir" \
