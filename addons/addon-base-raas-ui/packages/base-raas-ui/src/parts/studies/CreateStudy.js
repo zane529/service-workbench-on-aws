@@ -37,8 +37,7 @@ class CreateStudy extends React.Component {
       this.cleanModal();
       this.form = getCreateStudyForm();
       this.studyType = 's3'; // Default study type
-      console.log('Initial study type set to:', this.studyType);
-      
+
       // Make sure the form field has the initial value
       if (this.form.$('studyType')) {
         this.form.$('studyType').value = 's3';
@@ -61,18 +60,17 @@ class CreateStudy extends React.Component {
     this.cleanModal();
   };
 
-  handleFormError = (_form, _errors) => {};
+  handleFormError = (_form, _errors) => { };
 
   handleStudyTypeChange = (e, { value }) => {
-    console.log('Study type changed to:', value);
     runInAction(() => {
       this.studyType = value;
-      
+
       // Also update the form field if it exists
       if (this.form.$('studyType')) {
         this.form.$('studyType').value = value;
       }
-      
+
       // Add or remove FTP fields based on study type
       if (value === 'ftp') {
         if (!this.form.$('ftpHost')) {
@@ -109,14 +107,11 @@ class CreateStudy extends React.Component {
       const studiesStore = this.getStudiesStore(categoryId);
 
       delete studyValues.categoryId;
-      
+
       // Make sure studyType is included in the submission
       const studyTypeValue = toJS(this.studyType);
       studyValues.studyType = studyTypeValue;
-      
-      // Debug log to check the value
-      console.log('Study type value:', studyTypeValue);
-      
+
       // Create study, clear form, and close modal
       await studiesStore.createStudy({ ...studyValues, category: categoryName }); // TODO the backend should really accept category id not the category name
       form.clear();
@@ -161,8 +156,6 @@ class CreateStudy extends React.Component {
       { key: 'ftp', text: 'FTP', value: 'ftp' },
     ];
 
-    console.log('Rendering form with study type:', this.studyType);
-
     return (
       <Segment clearing className="p3 mb3">
         <Form form={form} onCancel={this.handleFormCancel} onSuccess={this.handleFormSubmission}>
@@ -171,10 +164,10 @@ class CreateStudy extends React.Component {
               <Input field={form.$('id')} />
               <div className="field mb4">
                 <label>Study type</label>
-                <SemanticDropdown 
+                <SemanticDropdown
                   options={studyTypeOptions}
-                  fluid 
-                  selection 
+                  fluid
+                  selection
                   defaultValue="s3"
                   value={this.studyType}
                   onChange={this.handleStudyTypeChange}
@@ -183,7 +176,7 @@ class CreateStudy extends React.Component {
                 />
               </div>
               <YesNo field={form.$('categoryId')} />
-              
+
               {this.studyType === 'ftp' && (
                 <>
                   <Input field={form.$('ftpHost')} />
@@ -193,7 +186,7 @@ class CreateStudy extends React.Component {
                   <Input field={form.$('ftpPath')} />
                 </>
               )}
-              
+
               <Input field={form.$('name')} />
               <TextArea field={form.$('description')} />
               <Dropdown field={form.$('projectId')} options={projectIds} fluid selection />

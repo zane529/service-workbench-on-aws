@@ -223,13 +223,20 @@ class EnvironmentResourceService extends Service {
       
       const { id, resources = [], envPermission = {}, studyType = 's3' } = study;
       const { read, write } = envPermission;
-      const item = { id, readable: read, writeable: write, studyType };
+      const isOpenDataStudy = isOpenData(study);
+      const item = { 
+        id, 
+        readable: read, 
+        writeable: write, 
+        studyType,
+        studyCategory: isOpenDataStudy ? 'opendata' : 's3' // 添加 studyCategory 属性来区分 s3 和 opendata
+      };
       const getBucketAndPrefix = (resource = {}) => {
         const { bucket, prefix } = parseS3Arn(resource.arn) || {};
         return { bucket, prefix };
       };
 
-      if (!isOpenData(study)) {
+      if (!isOpenDataStudy) {
         // All studies with the exception of open data studies, only have one resource
         addToMounts({ ...item, kmsArn, ...getBucketAndPrefix(_.nth(resources, 0)) });
         return;
@@ -245,7 +252,11 @@ class EnvironmentResourceService extends Service {
       _.forEach(resources, resource => {
         counter += 1;
         // When we have multiple resources in an open data, we need to adjust the study id on the fly
-        addToMounts({ ...item, ...getBucketAndPrefix(resource), id: `${id}-${counter}` });
+        addToMounts({ 
+          ...item, 
+          ...getBucketAndPrefix(resource), 
+          id: `${id}-${counter}`
+        });
       });
     });
 

@@ -18,6 +18,7 @@ const _ = require('lodash');
 const Service = require('@amzn/base-services-container/lib/service');
 const { getSystemRequestContext } = require('@amzn/base-services/lib/helpers/system-context');
 const { processInBatches } = require('@amzn/base-services/lib/helpers/utils');
+const { isOpenData } = require('../../../study/helpers/entities/study-methods');
 
 /**
  * This service is responsible for allocating and de-allocating AWS resources for the environment so that
@@ -240,13 +241,26 @@ class EnvironmentResourceService extends Service {
     _.forEach(studies, study => {
       const { id, bucket, kmsScope, folder, region, awsPartition, envPermission = {}, studyType = 's3' } = study;
       const { read, write } = envPermission;
+      const isOpenDataStudy = isOpenData ? isOpenData(study) : false; // 检查是否为 OpenData study
+      
       // The logic to determining the kmsArn logic is:
       // - If the study kms scope is 'bucket', then we don't include the kmsArn in the mount information, this way
       //   the default bucket kms will be used by S3 without needing to pass the exact kms arn
       // - If the study kms scope is 'study', then we need to include the kmsArn in the mount information
       const kmsArn = kmsScope === 'study' ? study.kmsArn : undefined;
       const roleArn = _.get(environmentScEntity, 'studyRoles', {})[id];
-      const item = { id, bucket, region, kmsArn, roleArn, prefix: folder, readable: read, writeable: write, studyType };
+      const item = { 
+        id, 
+        bucket, 
+        region, 
+        kmsArn, 
+        roleArn, 
+        prefix: folder, 
+        readable: read, 
+        writeable: write, 
+        studyType,
+        studyCategory: isOpenDataStudy ? 'opendata' : 's3' // 添加 studyCategory 属性来区分 s3 和 opendata
+      };
       if (awsPartition !== 'aws') item.awsPartition = awsPartition;
 
       s3Mounts.push(item);
