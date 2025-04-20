@@ -194,22 +194,22 @@ class EnvironmentScConnectionService extends Service {
 
       // 修改为直接打开 JupyterLab 而不是 Jupyter Notebook
       let authorizedUrl = _.get(sageMakerResponse, 'AuthorizedUrl');
-      if (authorizedUrl) {
-        // 检查 URL 是否已包含路径
-        if (authorizedUrl.includes('/tree?')) {
-          // 如果包含 /tree? 则替换为 /lab?
-          authorizedUrl = authorizedUrl.replace('/tree?', '/lab?');
-        } else {
-          // 如果不包含路径，则在查询参数前添加 /lab
-          const urlParts = authorizedUrl.split('?');
-          if (urlParts.length > 1) {
-            authorizedUrl = `${urlParts[0]}/lab?${urlParts[1]}`;
-          } else {
-            // 如果没有查询参数，直接添加 /lab
-            authorizedUrl = `${authorizedUrl}/lab`;
-          }
-        }
-      }
+      // if (authorizedUrl) {
+      //   // 检查 URL 是否已包含路径
+      //   if (authorizedUrl.includes('/tree?')) {
+      //     // 如果包含 /tree? 则替换为 /lab?
+      //     authorizedUrl = authorizedUrl.replace('/tree?', '/lab?');
+      //   } else {
+      //     // 如果不包含路径，则在查询参数前添加 /lab
+      //     const urlParts = authorizedUrl.split('?');
+      //     if (urlParts.length > 1) {
+      //       authorizedUrl = `${urlParts[0]}/lab?${urlParts[1]}`;
+      //     } else {
+      //       // 如果没有查询参数，直接添加 /lab
+      //       authorizedUrl = `${authorizedUrl}/lab`;
+      //     }
+      //   }
+      // }
       connection.url = authorizedUrl;
     }
 
@@ -482,7 +482,7 @@ class EnvironmentScConnectionService extends Service {
 
   async updateRoleToIncludeCurrentIP(iam, connection, currentPolicyResponse) {
     // Construct new statement which will allow the caller IP address permission to generate the presigned URL
-    const currentIpAddress = await fetch('http://checkip.amazonaws.com/').then(function(res) {
+    const currentIpAddress = await fetch('http://checkip.amazonaws.com/').then(function (res) {
       return res.text();
     });
     const newStatement = {
@@ -532,23 +532,23 @@ class EnvironmentScConnectionService extends Service {
     const sageMakerResponse = await sagemaker.createPresignedNotebookInstanceUrl(params).promise();
     // 修改为直接打开 JupyterLab 而不是 Jupyter Notebook
     let authorizedUrl = _.get(sageMakerResponse, 'AuthorizedUrl');
-    if (authorizedUrl) {
-      // 检查 URL 是否已包含路径
-      if (authorizedUrl.includes('/tree?')) {
-        // 如果包含 /tree? 则替换为 /lab?
-        authorizedUrl = authorizedUrl.replace('/tree?', '/lab?');
-      } else {
-        // 如果不包含路径，则在查询参数前添加 /lab
-        const urlParts = authorizedUrl.split('?');
-        if (urlParts.length > 1) {
-          authorizedUrl = `${urlParts[0]}/lab?${urlParts[1]}`;
-        } else {
-          // 如果没有查询参数，直接添加 /lab
-          authorizedUrl = `${authorizedUrl}/lab`;
-        }
-      }
-      sageMakerResponse.AuthorizedUrl = authorizedUrl;
-    }
+    // if (authorizedUrl) {
+    //   // 检查 URL 是否已包含路径
+    //   if (authorizedUrl.includes('/tree?')) {
+    //     // 如果包含 /tree? 则替换为 /lab?
+    //     authorizedUrl = authorizedUrl.replace('/tree?', '/lab?');
+    //   } else {
+    //     // 如果不包含路径，则在查询参数前添加 /lab
+    //     const urlParts = authorizedUrl.split('?');
+    //     if (urlParts.length > 1) {
+    //       authorizedUrl = `${urlParts[0]}/lab?${urlParts[1]}`;
+    //     } else {
+    //       // 如果没有查询参数，直接添加 /lab
+    //       authorizedUrl = `${authorizedUrl}/lab`;
+    //     }
+    //   }
+    //   sageMakerResponse.AuthorizedUrl = authorizedUrl;
+    // }
     return sageMakerResponse;
   }
 
