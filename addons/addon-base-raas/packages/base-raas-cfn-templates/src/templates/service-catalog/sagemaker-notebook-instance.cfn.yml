@@ -292,16 +292,6 @@ Resources:
             Fn::Base64: !Sub |
               #!/usr/bin/env bash
               set -e
-
-              # 创建 Jupyter 配置目录（如果不存在）
-              mkdir -p /home/ec2-user/.jupyter
-
-              # 设置 JupyterLab 为默认界面
-              echo "c.NotebookApp.default_url = '/lab'" >> /home/ec2-user/.jupyter/jupyter_notebook_config.py
-
-              # 确保权限正确
-              chown -R ec2-user:ec2-user /home/ec2-user/.jupyter
-
               # Clone the GitHub repository during instance creation
               cd /home/ec2-user/SageMaker
               git clone https://github.com/zane529/odp
