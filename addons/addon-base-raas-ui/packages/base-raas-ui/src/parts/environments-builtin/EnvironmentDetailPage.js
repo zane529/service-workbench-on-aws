@@ -323,6 +323,43 @@ class EnvironmentDetailPage extends React.Component {
   handleSharedWithUsersSelection = (e, { value }) => {
     this.updateSharedWithUsers = value.map(item => JSON.parse(item));
   };
+  
+  handleConnectToJupyterLab = async event => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const environment = this.getEnvironment();
+    environment.setFetchingUrl(true);
+
+    try {
+      // 先获取标准 URL
+      const { AuthorizedUrl } = await environment.getEnvironmentUrl(this.props.userStore.user);
+
+      // 打开新标签页
+      const newTab = window.open('about:blank', '_blank');
+
+      // 首先加载标准 URL 进行认证
+      newTab.location = AuthorizedUrl;
+
+      // 设置一个定时器，等待认证完成后尝试跳转到 JupyterLab
+      setTimeout(() => {
+        try {
+          if (newTab && !newTab.closed) {
+            newTab.location.href = AuthorizedUrl.replace('/tree', '/lab');
+          }
+        } catch (e) {
+          console.error("Failed to redirect to JupyterLab:", e);
+        }
+      }, 2000); // 等待 2 秒，可以根据实际情况调整
+    } catch (error) {
+      console.error("Error connecting to JupyterLab:", error);
+    } finally {
+      // 延迟重置 fetchingUrl 状态，以便用户看到加载状态
+      setTimeout(() => {
+        environment.setFetchingUrl(false);
+      }, 6000);
+    }
+  };
 
   handleSubmitSharedWithUsersClick = async event => {
     event.preventDefault();
@@ -586,42 +623,7 @@ class EnvironmentDetailPage extends React.Component {
   }
 
   renderSagemakerSecurity() {
-    handleConnectToJupyterLab = async event => {
-      event.preventDefault();
-      event.stopPropagation();
-
-      const environment = this.getEnvironment();
-      environment.setFetchingUrl(true);
-
-      try {
-        // 先获取标准 URL
-        const { AuthorizedUrl } = await environment.getEnvironmentUrl(this.props.userStore.user);
-
-        // 打开新标签页
-        const newTab = window.open('about:blank', '_blank');
-
-        // 首先加载标准 URL 进行认证
-        newTab.location = AuthorizedUrl;
-
-        // 设置一个定时器，等待认证完成后尝试跳转到 JupyterLab
-        setTimeout(() => {
-          try {
-            if (newTab && !newTab.closed) {
-              newTab.location.href = AuthorizedUrl.replace('/tree', '/lab');
-            }
-          } catch (e) {
-            console.error("Failed to redirect to JupyterLab:", e);
-          }
-        }, 2000); // 等待 5 秒，可以根据实际情况调整
-      } catch (error) {
-        console.error("Error connecting to JupyterLab:", error);
-      } finally {
-        // 延迟重置 fetchingUrl 状态，以便用户看到加载状态
-        setTimeout(() => {
-          environment.setFetchingUrl(false);
-        }, 6000);
-      }
-    }; const environment = this.getEnvironment();
+    const environment = this.getEnvironment();
 
     return (
       <div>
