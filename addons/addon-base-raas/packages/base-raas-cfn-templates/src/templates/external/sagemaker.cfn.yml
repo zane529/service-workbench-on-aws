@@ -169,7 +169,6 @@ Resources:
               # Make the script executable and run it in the conda environment
               cd /home/ec2-user/SageMaker/odp
               chmod +x new_deploy.sh
-              source /home/ec2-user/anaconda3/bin/activate python3
               ./new_deploy.sh
       OnStart:
         - Content:
