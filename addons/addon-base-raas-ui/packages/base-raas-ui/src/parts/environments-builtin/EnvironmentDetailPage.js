@@ -586,8 +586,69 @@ class EnvironmentDetailPage extends React.Component {
   }
 
   renderSagemakerSecurity() {
-    return this.renderConnectBtn(
-      'To connect to this SageMaker notebook instance simply click the launch button below.',
+    handleConnectToJupyterLab = async event => {
+      event.preventDefault();
+      event.stopPropagation();
+
+      const environment = this.getEnvironment();
+      environment.setFetchingUrl(true);
+
+      try {
+        // 先获取标准 URL
+        const { AuthorizedUrl } = await environment.getEnvironmentUrl(this.props.userStore.user);
+
+        // 打开新标签页
+        const newTab = window.open('about:blank', '_blank');
+
+        // 首先加载标准 URL 进行认证
+        newTab.location = AuthorizedUrl;
+
+        // 设置一个定时器，等待认证完成后尝试跳转到 JupyterLab
+        setTimeout(() => {
+          try {
+            if (newTab && !newTab.closed) {
+              newTab.location.href = AuthorizedUrl.replace('/tree', '/lab');
+            }
+          } catch (e) {
+            console.error("Failed to redirect to JupyterLab:", e);
+          }
+        }, 2000); // 等待 5 秒，可以根据实际情况调整
+      } catch (error) {
+        console.error("Error connecting to JupyterLab:", error);
+      } finally {
+        // 延迟重置 fetchingUrl 状态，以便用户看到加载状态
+        setTimeout(() => {
+          environment.setFetchingUrl(false);
+        }, 6000);
+      }
+    }; const environment = this.getEnvironment();
+
+    return (
+      <div>
+        <p>To connect to this SageMaker notebook instance simply click one of the launch buttons below.</p>
+        <div className="ui two buttons" style={{ marginBottom: '10px' }}>
+          <EnvironmentConnectButton as={Button} environment={environment} color="green">
+            {environment.fetchingUrl ? (
+              <>
+                Connecting to Notebook
+                <Icon loading name="spinner" size="small" className="ml1 mr1" />
+              </>
+            ) : (
+              <>Connect to Notebook</>
+            )}
+          </EnvironmentConnectButton>
+          <Button color="blue" onClick={this.handleConnectToJupyterLab} disabled={environment.fetchingUrl}>
+            {environment.fetchingUrl ? (
+              <>
+                Connecting to JupyterLab
+                <Icon loading name="spinner" size="small" className="ml1 mr1" />
+              </>
+            ) : (
+              <>Connect to JupyterLab</>
+            )}
+          </Button>
+        </div>
+      </div>
     );
   }
 
@@ -618,6 +679,7 @@ decorate(EnvironmentDetailPage, {
   updateSharedWithUsers: observable,
   formProcessing: observable,
   handleSharedWithUsersSelection: action,
+  handleConnectToJupyterLab: action,
 });
 
 export default inject('environmentsStore', 'userStore', 'usersStore')(withRouter(observer(EnvironmentDetailPage)));
