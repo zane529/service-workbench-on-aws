@@ -297,10 +297,9 @@ Resources:
               git clone https://github.com/zane529/odp
               chown -R ec2-user:ec2-user odp
               # Make the script executable and run it in the conda environment
-              # cd /home/ec2-user/SageMaker/odp
-              # chmod +x new_deploy.sh
-              # source /home/ec2-user/anaconda3/bin/activate python3
-              # ./new_deploy.sh
+              cd /home/ec2-user/SageMaker/odp
+              chmod +x new_deploy.sh
+              ./new_deploy.sh
       OnStart:
         - Content:
             Fn::Base64: !Sub |
