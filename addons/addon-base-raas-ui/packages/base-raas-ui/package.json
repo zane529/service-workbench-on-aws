@@ -43,7 +43,8 @@
     "toastr": "^2.1.4",
     "typeface-lato": "0.0.75",
     "uuid": "^3.4.0",
-    "validatorjs": "^3.22.1"
+    "validatorjs": "^3.22.1",
+    "xterm-addon-fit": "^5.3.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.19.3",
