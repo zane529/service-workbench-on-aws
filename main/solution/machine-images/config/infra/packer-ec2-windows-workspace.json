@@ -32,5 +32,31 @@
       "communicator": "none",
       "ami_name": "{{user `ec2WindowsAmiPrefix`}}-{{timestamp}}"
     }
+  ],
+  "provisioners": [
+    {
+      "type": "powershell",
+      "inline": [
+        "$ConfigPath = 'C:\\ProgramData\\Amazon\\EC2Launch\\config\\agent-config.yml'",
+        "$Lines = Get-Content $ConfigPath",
+        "$InsertIndex = ($Lines | Select-String -Pattern '^config:' | Select-Object -First 1).LineNumber",
+        "$NewLines = @()",
+        "for ($i = 0; $i -lt $Lines.Length; $i++) {",
+        "  $NewLines += $Lines[$i]",
+        "  if ($i -eq $InsertIndex) {",
+        "    $NewLines += '  user_data:'",
+        "    $NewLines += '    enabled: true'",
+        "  }",
+        "}",
+        "Set-Content $ConfigPath $NewLines",
+        "Restart-Service EC2Launch"
+      ]
+    },
+    {
+      "type": "powershell",
+      "inline": [
+        "C:\\Program Files\\Amazon\\EC2Launch\\ec2launch.exe sysprep -s"
+      ]
+    }
   ]
 }
