@@ -26,6 +26,7 @@ import ProgressPlaceHolder from '@amzn/base-ui/dist/parts/helpers/BasicProgressP
 import KeyPairCreateForm from '@amzn/key-pair-mgmt-ui/dist/parts/key-pairs/parts/KeyPairCreateForm';
 
 import ScEnvironmentSshConnectionRow from './ScEnvironmentSshConnectionRow';
+import WebShellPage from './WebShellPage';
 
 // expected props
 // - environment (via prop)
@@ -182,6 +183,10 @@ class ScEnvironmentSshConnections extends React.Component {
                 <div>
                   <Button floated="right" color="blue" size="mini" basic onClick={this.toggleCreateKey}>
                     Create Key
+                  </Button>
+                  <Button floated="right" color="green" size="mini" basic style={{ marginRight: '8px' }}
+                    onClick={() => window.open(`/environments/${this.environment.id}/web-shell`, '_blank')}>
+                    Connect
                   </Button>
                 </div>
                 <div className="mt1">SSH Connections</div>
