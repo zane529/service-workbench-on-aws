@@ -31,10 +31,12 @@
       "instance_type": "c6i.large",
       "communicator": "winrm",
       "winrm_username": "Administrator",
-      "winrm_password": "YourPassword123!",
       "winrm_use_ssl": true,
       "winrm_insecure": true,
       "winrm_timeout": "1h",
+      "ssh_keypair_name": "swb-packer-key",
+      "ssh_private_key_file": "/home/ec2-user/swb-packer-key.pem",
+      "associate_public_ip_address": true,
       "ami_name": "{{user `ec2WindowsAmiPrefix`}}-{{timestamp}}"
     }
   ],
