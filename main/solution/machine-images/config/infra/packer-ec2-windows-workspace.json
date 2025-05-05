@@ -20,7 +20,7 @@
       "source_ami_filter": {
         "filters": {
           "virtualization-type": "hvm",
-          "name": "Windows_Server-2022-English-Full-Base-*",
+          "name": "Windows_Server-2016-English-Full-Base-*",
           "root-device-type": "ebs"
         },
         "owners": [
@@ -29,39 +29,8 @@
         "most_recent": true
       },
       "instance_type": "c6i.large",
-      "communicator": "winrm",
-      "winrm_username": "Administrator",
-      "winrm_password": "A@rj33l1n9",
-      "winrm_port": 5985,
-      "windows_password_timeout": "20m",
-      "associate_public_ip_address": true,
+      "communicator": "none",
       "ami_name": "{{user `ec2WindowsAmiPrefix`}}-{{timestamp}}"
-    }
-  ],
-  "provisioners": [
-    {
-      "type": "powershell",
-      "inline": [
-        "$ConfigPath = 'C:\\ProgramData\\Amazon\\EC2Launch\\config\\agent-config.yml'",
-        "$Lines = Get-Content $ConfigPath",
-        "$InsertIndex = ($Lines | Select-String -Pattern '^config:' | Select-Object -First 1).LineNumber",
-        "$NewLines = @()",
-        "for ($i = 0; $i -lt $Lines.Length; $i++) {",
-        "  $NewLines += $Lines[$i]",
-        "  if ($i -eq $InsertIndex) {",
-        "    $NewLines += '  user_data:'",
-        "    $NewLines += '    enabled: true'",
-        "  }",
-        "}",
-        "Set-Content $ConfigPath $NewLines",
-        "Restart-Service EC2Launch"
-      ]
-    },
-    {
-      "type": "powershell",
-      "inline": [
-        "C:\\Program Files\\Amazon\\EC2Launch\\ec2launch.exe sysprep -s"
-      ]
     }
   ]
 }
