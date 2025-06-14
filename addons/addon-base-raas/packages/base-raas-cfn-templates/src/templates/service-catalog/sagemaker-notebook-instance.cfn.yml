@@ -282,7 +282,7 @@ Resources:
         - Enabled
       LifecycleConfigName: !GetAtt BasicNotebookInstanceLifecycleConfig.NotebookInstanceLifecycleConfigName
       KmsKeyId: !Ref EncryptionKeyArn
-      PlatformIdentifier: "notebook-al2-v1"
+      PlatformIdentifier: "notebook-al2-v3"
 
   BasicNotebookInstanceLifecycleConfig:
     Type: "AWS::SageMaker::NotebookInstanceLifecycleConfig"
