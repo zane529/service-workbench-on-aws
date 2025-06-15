@@ -295,11 +295,11 @@ Resources:
 
               cd /home/ec2-user/SageMaker
               # Clone the GitHub repository during instance creation
-              #git clone https://github.com/zane529/odp
-              #chown -R ec2-user:ec2-user odp
+              git clone https://github.com/zane529/eduodp.git
+              #chown -R ec2-user:ec2-user eduodp
               # Make the script executable and run it in the conda environment
-              #chmod +x /home/ec2-user/SageMaker/odp/new_deploy.sh
-              #nohup /home/ec2-user/SageMaker/odp/new_deploy.sh > /home/ec2-user/new_deploy.log 2>&1 &
+              chmod +x /home/ec2-user/SageMaker/eduodp/fast_deploy.sh
+              #nohup /home/ec2-user/SageMaker/eduodp/fast_deploy.sh > /home/ec2-user/fast_deploy.log 2>&1 &
       OnStart:
         - Content:
             Fn::Base64: !Sub |
