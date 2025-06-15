@@ -17,10 +17,10 @@ websiteCloudFrontId: ${cf:${self:custom.settings.infrastructureStackName}.CloudF
 websiteUrl: ${cf:${self:custom.settings.infrastructureStackName}.WebsiteUrl}
 
 # Branding
-brandPageTitle: 'Service Workbench'
-brandMainTitle: 'Service Workbench on AWS (${self:custom.settings.envName}/${self:custom.settings.awsRegion})'
-brandLoginTitle: 'Service Workbench'
-brandLoginSubtitle: 'Service Workbench on AWS (${self:custom.settings.envName}/${self:custom.settings.awsRegion})'
+brandPageTitle: '天基观测数据国际化共享平台'
+brandMainTitle: '天基观测数据国际化共享平台 (${self:custom.settings.envName}/${self:custom.settings.awsRegion})'
+brandLoginTitle: '天基观测数据国际化共享平台'
+brandLoginSubtitle: '天基观测数据国际化共享平台 (${self:custom.settings.envName}/${self:custom.settings.awsRegion})'
 
 versionAndDate: 'Version ${self:custom.settings.versionNumber} (${self:custom.settings.versionDate})'
 

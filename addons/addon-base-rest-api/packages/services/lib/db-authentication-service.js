@@ -36,7 +36,7 @@ class DbAuthenticationService extends Service {
     const { username, password } = credentials;
     const { uid, isValid } = await dbPasswordService.validatePassword({ username, password });
     if (!isValid) {
-      throw this.boom.invalidCredentials('Either the password is incorrect or the user does not exist', true);
+      throw this.boom.invalidCredentials('用户名或密码错误', true);
     }
     return uid;
   }
